@@ -14,7 +14,6 @@ This builds the common_interfaces from ROS2:
 - trajectory_msgs
 - visualization_msgs
 
-To utilize the libraries in your build, call `zigros.ros_libraries.sensor_msgs.link(your_exe.root_module)`.
-You will also need to manually specify any interface dependencies.
-Dependency management is still being sorted out.
-
+To utilize the libraries in your build, call
+`zigros.ros_libraries.sensor_msgs.link(your_exe.root_module)`. You will also need to manually
+specify any interface dependencies. Dependency management is still being sorted out.
