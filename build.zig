@@ -4,7 +4,6 @@ const zigros = @import("zigros/zigros.zig");
 const rcutils = @import("rcutils/build.zig");
 const rcpputils = @import("rcpputils/build.zig");
 const rosidl = @import("rosidl/build.zig");
-const RosidlGenerator = @import("rosidl/src/RosidlGenerator.zig");
 const rmw = @import("rmw/build.zig");
 const rmw_dds_common = @import("rmw_dds_common/build.zig");
 const rcl_logging = @import("rcl_logging/build.zig");
@@ -16,6 +15,8 @@ const rmw_cyclonedds = @import("rmw_cyclonedds/build.zig");
 const libstatistics_collector = @import("libstatistics_collector/build.zig");
 const ament_index = @import("ament_index/build.zig");
 const rclcpp = @import("rclcpp/build.zig");
+
+pub const RosidlGenerator = @import("rosidl/src/RosidlGenerator.zig");
 
 const LazyPath = std.Build.LazyPath;
 const Dependency = std.Build.Dependency;
@@ -43,7 +44,7 @@ const UpstreamDependencies = struct {
     rclcpp: *Dependency,
 };
 
-const RosLibraries = struct {
+pub const RosLibraries = struct {
     rcutils: *Compile,
     rcpputils: *Compile,
     rosidl_typesupport_interface: LazyPath,
@@ -88,7 +89,7 @@ const RosLibraries = struct {
     visualization_msgs: RosidlGenerator.Interface,
 };
 
-const PythonLibraries = struct {
+pub const PythonLibraries = struct {
     empy: ?LazyPath,
     lark: ?LazyPath,
     rcutils: LazyPath,
@@ -255,18 +256,6 @@ pub const ZigRos = struct {
         self.ros_libraries.builtin_interfaces.linkC(module);
         module.addIncludePath(self.ros_libraries.rosidl_typesupport_interface);
         module.linkLibrary(self.ros_libraries.rosidl_dynamic_typesupport);
-
-        self.ros_libraries.actionlib_msgs.linkC(module);
-        self.ros_libraries.diagnostic_msgs.linkC(module);
-        self.ros_libraries.geometry_msgs.linkC(module);
-        self.ros_libraries.nav_msgs.linkC(module);
-        self.ros_libraries.sensor_msgs.linkC(module);
-        self.ros_libraries.shape_msgs.linkC(module);
-        self.ros_libraries.std_msgs.linkC(module);
-        self.ros_libraries.std_srvs.linkC(module);
-        self.ros_libraries.stereo_msgs.linkC(module);
-        self.ros_libraries.trajectory_msgs.linkC(module);
-        self.ros_libraries.visualization_msgs.linkC(module);
     }
 
     pub fn linkRclcpp(self: ZigRos, module: *Module) void {
@@ -277,18 +266,6 @@ pub const ZigRos = struct {
         self.ros_libraries.builtin_interfaces.linkCpp(module);
         self.ros_libraries.statistics_msgs.link(module);
         self.ros_libraries.rosgraph_msgs.link(module);
-
-        self.ros_libraries.actionlib_msgs.linkCpp(module);
-        self.ros_libraries.diagnostic_msgs.linkCpp(module);
-        self.ros_libraries.geometry_msgs.linkCpp(module);
-        self.ros_libraries.nav_msgs.linkCpp(module);
-        self.ros_libraries.sensor_msgs.linkCpp(module);
-        self.ros_libraries.shape_msgs.linkCpp(module);
-        self.ros_libraries.std_msgs.linkCpp(module);
-        self.ros_libraries.std_srvs.linkCpp(module);
-        self.ros_libraries.stereo_msgs.linkCpp(module);
-        self.ros_libraries.trajectory_msgs.linkCpp(module);
-        self.ros_libraries.visualization_msgs.linkCpp(module);
 
         module.addIncludePath(self.ros_libraries.tracetools);
         module.addIncludePath(self.ros_libraries.rosidl_runtime_cpp);
