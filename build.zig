@@ -111,6 +111,7 @@ fn extractInterface(dep: *std.Build.Dependency, name: []const u8) RosidlGenerato
     var buf: [256]u8 = undefined;
     return RosidlGenerator.Interface{
         .share = dep.namedWriteFiles(name).getDirectory(),
+        .include_dir = dep.builder.named_lazy_paths.get(name),
         .interface_c = dep.artifact(std.fmt.bufPrint(
             &buf,
             "{s}__rosidl_generator_c",

@@ -57,6 +57,8 @@ const RosidlTypesupportIntrospectionCpp = CodeGenerator(
 
 pub const Interface = struct {
     share: LazyPath,
+    /// Some interfaces also have C/C++ headers associated with them that might be needed downstream
+    include_dir: ?LazyPath = null,
     interface_c: *Compile,
     interface_cpp: LazyPath,
     typesupport_c: *Compile,
@@ -75,6 +77,9 @@ pub const Interface = struct {
         target.linkLibrary(self.interface_c);
         target.linkLibrary(self.typesupport_c);
         target.linkLibrary(self.typesupport_introspection_c);
+        if (self.include_dir) |dir| {
+            target.addIncludePath(dir);
+        }
     }
 
     // Note this function should only be used if linkC has been called previously on the same module,
@@ -84,6 +89,9 @@ pub const Interface = struct {
         target.addIncludePath(self.interface_cpp);
         target.linkLibrary(self.typesupport_cpp);
         target.linkLibrary(self.typesupport_introspection_cpp);
+        if (self.include_dir) |dir| {
+            target.addIncludePath(dir);
+        }
     }
 };
 
@@ -393,8 +401,7 @@ const PythonArguments = union(enum) {
 pub fn installArtifacts(self: *RosidlGenerator) void {
     var b = self.owner;
     b.installDirectory(.{
-        .source_dir = self.share_dir
-            .getDirectory(),
+        .source_dir = self.share_dir.getDirectory(),
         .install_dir = .{ .custom = self.package_name },
         .install_subdir = "",
     });
