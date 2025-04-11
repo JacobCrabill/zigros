@@ -23,6 +23,8 @@ pub const Artifacts = struct {
     builtin_interfaces: RosidlGenerator.Interface,
     rosgraph_msgs: RosidlGenerator.Interface,
     service_msgs: RosidlGenerator.Interface,
+    action_msgs: RosidlGenerator.Interface,
+    unique_identifier_msgs: RosidlGenerator.Interface,
     type_description_interfaces: RosidlGenerator.Interface,
     statistics_msgs: RosidlGenerator.Interface,
     rcl_interfaces: RosidlGenerator.Interface,
@@ -31,6 +33,7 @@ pub const Artifacts = struct {
 pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: BuildDeps) Artifacts {
     const upstream = deps.upstream;
 
+    // Built-In Interfaces
     var builtin_interfaces = RosidlGenerator.create(
         b,
         "builtin_interfaces",
@@ -46,6 +49,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
 
     builtin_interfaces.installArtifacts();
 
+    // ROS Graph Messages
     var rosgraph_msgs = RosidlGenerator.create(
         b,
         "rosgraph_msgs",
@@ -61,6 +65,14 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     rosgraph_msgs.addDependency("builtin_interfaces", builtin_interfaces.artifacts);
     rosgraph_msgs.installArtifacts();
 
+    // Unique Identifier Message
+    // This is so dumb that a single 'uint8[16] uuid' is an entirely separate repository
+    var unique_identifier_msgs = RosidlGenerator.create(b, "unique_identifier_msgs", deps.rosidl_generator, build_deps.rosidl_generator, args);
+    unique_identifier_msgs.addInterfaces(b.path("rcl_interfaces/unique_identifier_msgs"), &.{"msg/UUID.msg"});
+    unique_identifier_msgs.addDependency("builtin_interfaces", builtin_interfaces.artifacts);
+    unique_identifier_msgs.installArtifacts();
+
+    // Service Messages
     var service_msgs = RosidlGenerator.create(
         b,
         "service_msgs",
@@ -78,6 +90,32 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
 
     service_msgs.installArtifacts();
 
+    // Action Messages
+    var action_msgs = RosidlGenerator.create(
+        b,
+        "action_msgs",
+        deps.rosidl_generator,
+        build_deps.rosidl_generator,
+        args,
+    );
+
+    action_msgs.addInterfaces(
+        upstream.path("action_msgs"),
+        &.{
+            "msg/GoalInfo.msg",
+            "msg/GoalStatus.msg",
+            "msg/GoalStatusArray.msg",
+            "srv/CancelGoal.srv",
+        },
+    );
+
+    action_msgs.addDependency("builtin_interfaces", builtin_interfaces.artifacts);
+    action_msgs.addDependency("unique_identifier_msgs", unique_identifier_msgs.artifacts);
+    action_msgs.addDependency("service_msgs", service_msgs.artifacts);
+
+    action_msgs.installArtifacts();
+
+    // Type Description Interfaces
     var type_description_interfaces = RosidlGenerator.create(
         b,
         "type_description_interfaces",
@@ -107,6 +145,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
 
     type_description_interfaces.installArtifacts();
 
+    // Statistics Messages
     var statistics_msgs = RosidlGenerator.create(
         b,
         "statistics_msgs",
@@ -128,6 +167,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
 
     statistics_msgs.installArtifacts();
 
+    // ROS C Library Interfaces
     var rcl_interfaces = RosidlGenerator.create(
         b,
         "rcl_interfaces",
@@ -171,7 +211,9 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     return Artifacts{
         .builtin_interfaces = builtin_interfaces.artifacts,
         .rosgraph_msgs = rosgraph_msgs.artifacts,
+        .action_msgs = action_msgs.artifacts,
         .service_msgs = service_msgs.artifacts,
+        .unique_identifier_msgs = unique_identifier_msgs.artifacts,
         .type_description_interfaces = type_description_interfaces.artifacts,
         .statistics_msgs = statistics_msgs.artifacts,
         .rcl_interfaces = rcl_interfaces.artifacts,

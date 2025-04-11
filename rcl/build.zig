@@ -19,7 +19,9 @@ pub const Deps = struct {
     rosidl_typesupport_interface: LazyPath,
     rcl_logging_interface: *Compile,
     type_description_interfaces: Interface,
+    action_msgs: Interface,
     service_msgs: Interface,
+    unique_identifier_msgs: Interface,
     builtin_interfaces: Interface,
     rcl_interfaces: Interface,
 };
@@ -27,6 +29,7 @@ pub const Deps = struct {
 pub const Artifacts = struct {
     rcl_yaml_param_parser: *Compile,
     rcl: *Compile,
+    rcl_action: *Compile,
 };
 
 pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
@@ -143,8 +146,49 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
     });
     b.installArtifact(rcl);
 
+    var rcl_action = b.addLibrary(.{
+        .name = "rcl_action",
+        .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+            .pic = if (linkage == .dynamic) true else null,
+        }),
+        .linkage = linkage,
+    });
+
+    rcl_action.addIncludePath(deps.tracetools);
+
+    rcl_action.addIncludePath(upstream.path("rcl_action/include"));
+    rcl_action.addIncludePath(upstream.path("rcl_action/src"));
+    rcl_action.installHeadersDirectory(upstream.path("rcl_action/include"), "", .{});
+    // Private headers that shouldn't be installed
+    rcl_action.installHeadersDirectory(upstream.path("rcl_action/src/rcl_action"), "", .{});
+
+    zigros.linkDependencyStruct(rcl_action.root_module, deps, .c);
+    rcl_action.linkLibrary(yaml_param_parser);
+    rcl_action.linkLibrary(rcl);
+
+    rcl_action.addCSourceFiles(.{
+        .root = upstream.path("rcl_action/src/rcl_action"),
+        .files = &.{
+            "action_client.c",
+            "action_server.c",
+            "goal_handle.c",
+            "goal_state_machine.c",
+            "graph.c",
+            "names.c",
+            "types.c",
+        },
+        .flags = &.{
+            "-DROS_PACKAGE_NAME=\"rcl_action\"",
+            "-fvisibility=hidden",
+        },
+    });
+    b.installArtifact(rcl_action);
+
     return Artifacts{
         .rcl_yaml_param_parser = yaml_param_parser,
         .rcl = rcl,
+        .rcl_action = rcl_action,
     };
 }

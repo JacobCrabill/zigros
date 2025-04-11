@@ -7,6 +7,9 @@ pub const Language = enum {
     cpp,
 };
 
+// TODO: This should operate on std.Build.Step.Compile instead, so that it can
+// forward include directories to downstream components with installLibraryHeaders()
+//
 // This links all relevant fields in a struct of dependencies to the provided module.
 // This will link any *Compile field, add all lazy paths as include files, and use the link helper
 // with any provided Interface types. the lang arg is only used for interfaces for now. If .c is

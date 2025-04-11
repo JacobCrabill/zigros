@@ -12,6 +12,7 @@ const PythonDep = zigros.PythonDep;
 pub const Deps = struct {
     upstream: *Dependency,
     rcl: *Compile,
+    rcl_action: *Compile,
     rcl_yaml_param_parser: *Compile,
     rcl_logging_interface: *Compile,
     yaml: *Compile,
@@ -28,6 +29,8 @@ pub const Deps = struct {
     rosidl_typesupport_introspection_cpp: *Compile,
     type_description_interfaces: Interface,
     service_msgs: Interface,
+    action_msgs: Interface,
+    unique_identifier_msgs: Interface,
     builtin_interfaces: Interface,
     rcl_interfaces: Interface,
     statistics_msgs: Interface,
@@ -38,6 +41,11 @@ pub const BuildDeps = struct {
     python: PythonDep,
     empy: ?LazyPath,
     rcutils: LazyPath,
+};
+
+pub const Artifacts = struct {
+    rclcpp: *Compile,
+    rclcpp_action: *Compile,
 };
 
 fn pythonStep(b: *std.Build, command: []const u8, build_deps: BuildDeps) *Run {
@@ -56,7 +64,7 @@ fn pythonStep(b: *std.Build, command: []const u8, build_deps: BuildDeps) *Run {
     return step;
 }
 
-pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: BuildDeps) *Compile {
+pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: BuildDeps) Artifacts {
     const target = args.target;
     const optimize = args.optimize;
     const linkage = args.linkage;
@@ -117,7 +125,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
             \\        sys.path.append(arg.lstrip("-P"))
             \\import em
             \\output = sys.argv[-1]
-            \\em.invoke(['-D', 'interface_name = \'{[interface_name]s}\'', 
+            \\em.invoke(['-D', 'interface_name = \'{[interface_name]s}\'',
             \\        '-o', output, 'resource/interface_traits.hpp.em'])
         ;
         const interface_output_template =
@@ -151,7 +159,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
             \\        sys.path.append(arg.lstrip("-P"))
             \\import em
             \\output = sys.argv[-1]
-            \\em.invoke(['-D', 'interface_name = \'{[interface_name]s}\'', 
+            \\em.invoke(['-D', 'interface_name = \'{[interface_name]s}\'',
             \\        '-o', output, 'resource/get_interface.hpp.em'])
         ;
         const get_output_template = "include/rclcpp/node_interfaces/get_{[interface_name]s}.hpp";
@@ -289,5 +297,46 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     });
     b.installArtifact(rclcpp);
 
-    return rclcpp;
+    var rclcpp_action = b.addLibrary(.{
+        .name = "rclcpp_action",
+        .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+            .pic = if (linkage == .dynamic) true else null,
+        }),
+        .linkage = linkage,
+    });
+
+    if (optimize == .ReleaseSmall and linkage == .static) {
+        rclcpp_action.link_function_sections = true;
+        rclcpp_action.link_data_sections = true;
+    }
+
+    zigros.linkDependencyStruct(rclcpp_action.root_module, deps, .cpp);
+    rclcpp_action.linkLibrary(rclcpp);
+
+    rclcpp_action.addIncludePath(upstream.path("rclcpp_action/include"));
+    rclcpp_action.installHeadersDirectory(
+        upstream.path("rclcpp_action/include"),
+        "",
+        .{ .include_extensions = &.{ ".h", ".hpp" } },
+    );
+
+    rclcpp_action.addCSourceFiles(.{
+        .root = upstream.path("rclcpp_action/src"),
+        .files = &.{
+            "client.cpp",
+            "qos.cpp",
+            "server.cpp",
+            "server_goal_handle.cpp",
+            "types.cpp",
+        },
+    });
+
+    b.installArtifact(rclcpp_action);
+
+    return .{
+        .rclcpp = rclcpp,
+        .rclcpp_action = rclcpp_action,
+    };
 }
