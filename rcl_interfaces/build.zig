@@ -28,6 +28,7 @@ pub const Artifacts = struct {
     type_description_interfaces: RosidlGenerator.Interface,
     statistics_msgs: RosidlGenerator.Interface,
     rcl_interfaces: RosidlGenerator.Interface,
+    composition_interfaces: RosidlGenerator.Interface,
 };
 
 pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: BuildDeps) Artifacts {
@@ -208,6 +209,30 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
 
     rcl_interfaces.installArtifacts();
 
+    // Composition Interfaces
+    var composition_interfaces = RosidlGenerator.create(
+        b,
+        "composition_interfaces",
+        deps.rosidl_generator,
+        build_deps.rosidl_generator,
+        args,
+    );
+
+    composition_interfaces.addInterfaces(
+        upstream.path("composition_interfaces"),
+        &.{
+            "srv/ListNodes.srv",
+            "srv/LoadNode.srv",
+            "srv/UnloadNode.srv",
+        },
+    );
+
+    composition_interfaces.addDependency("rcl_interfaces", rcl_interfaces.artifacts);
+    composition_interfaces.addDependency("builtin_interfaces", builtin_interfaces.artifacts);
+    composition_interfaces.addDependency("service_msgs", service_msgs.artifacts);
+
+    composition_interfaces.installArtifacts();
+
     return Artifacts{
         .builtin_interfaces = builtin_interfaces.artifacts,
         .rosgraph_msgs = rosgraph_msgs.artifacts,
@@ -217,5 +242,6 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
         .type_description_interfaces = type_description_interfaces.artifacts,
         .statistics_msgs = statistics_msgs.artifacts,
         .rcl_interfaces = rcl_interfaces.artifacts,
+        .composition_interfaces = composition_interfaces.artifacts,
     };
 }

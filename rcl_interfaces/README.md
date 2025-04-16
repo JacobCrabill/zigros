@@ -10,10 +10,10 @@ Currently this only builds the interfaces mandatory for building rcl and rclcpp:
 - statistics_msgs
 - unique_identifier_msgs
 - action_msgs
+- composition_interfaces
 
 Still missing:
 
-- composition_interfaces
 - lifecycle_msgs
 - test_msgs
 

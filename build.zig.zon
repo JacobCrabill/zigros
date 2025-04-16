@@ -101,6 +101,14 @@
             .url = "https://github.com/gabime/spdlog/archive/tags/v1.14.1.tar.gz",
             .hash = "N-V-__8AAJSgEQBm_CX16IKfCtcWMyIFbucHpA9_ojS59TbP",
         },
+        .console_bridge = .{
+            .url = "https://github.com/ros/console_bridge/archive/122ed72b90bc9b69c68bafae901a78fcd43270a1.tar.gz",
+            .hash = "N-V-__8AALYOFQCW61yPTiJ2Z1o8Y9hS-_qLW611GBcym11w",
+        },
+        .class_loader = .{
+            .url = "https://github.com/ros/class_loader/archive/8bad929bd8b2777b8d2b6eff7227b2c5f325b11d.tar.gz",
+            .hash = "N-V-__8AAIy7AgCr5ZHlavhEo2ir9wqQZYJhGZUGs3xi5jNE",
+        },
     },
     .paths = .{
         "build.zig",
@@ -111,6 +119,7 @@
         "rcl/build.zig",
         "rclcpp/build.zig",
         "rcl_interfaces/build.zig",
+        "rcl_interfaces/unique_identifier_msgs",
         "rcl_logging/build.zig",
         "rcpputils/build.zig",
         "rcutils/build.zig",
@@ -127,5 +136,8 @@
         "rosidl/src/RosidlTypeDescription.zig",
         "rosidl/src/type_description_generator.zig",
         "zigros/zigros.zig",
+        "console_bridge/build.zig",
+        "console_bridge/include",
+        "class_loader/build.zig",
     },
 }

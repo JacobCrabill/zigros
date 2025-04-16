@@ -15,6 +15,8 @@ const rmw_cyclonedds = @import("rmw_cyclonedds/build.zig");
 const libstatistics_collector = @import("libstatistics_collector/build.zig");
 const ament_index = @import("ament_index/build.zig");
 const rclcpp = @import("rclcpp/build.zig");
+const console_bridge = @import("console_bridge/build.zig");
+const class_loader = @import("class_loader/build.zig");
 
 pub const RosidlGenerator = @import("rosidl/src/RosidlGenerator.zig");
 
@@ -68,9 +70,12 @@ pub const RosLibraries = struct {
     type_description_interfaces: RosidlGenerator.Interface,
     statistics_msgs: RosidlGenerator.Interface,
     rcl_interfaces: RosidlGenerator.Interface,
+    composition_interfaces: RosidlGenerator.Interface,
     tracetools: LazyPath,
     rcl_yaml_param_parser: *Compile,
     yaml: *Compile, // External
+    console_bridge: *Compile, // External
+    class_loader: *Compile, // External
     rcl: *Compile,
     rcl_action: *Compile,
     rmw_cyclonedds_cpp: *Compile,
@@ -79,6 +84,7 @@ pub const RosLibraries = struct {
     ament_index_cpp: *Compile,
     rclcpp: *Compile,
     rclcpp_action: *Compile,
+    rclcpp_components: *Compile,
     // common_interfaces:
     actionlib_msgs: RosidlGenerator.Interface,
     diagnostic_msgs: RosidlGenerator.Interface,
@@ -202,9 +208,12 @@ pub const ZigRos = struct {
                 .type_description_interfaces = extractInterface(dep, "type_description_interfaces"),
                 .statistics_msgs = extractInterface(dep, "statistics_msgs"),
                 .rcl_interfaces = extractInterface(dep, "rcl_interfaces"),
+                .composition_interfaces = extractInterface(dep, "composition_interfaces"),
                 .tracetools = dep.namedWriteFiles("tracetools").getDirectory(),
                 .rcl_yaml_param_parser = dep.artifact("rcl_yaml_param_parser"),
                 .yaml = dep.artifact("yaml"), // External
+                .console_bridge = dep.artifact("console_bridge"), // External
+                .class_loader = dep.artifact("class_loader"), // External
                 .rcl = dep.artifact("rcl"),
                 .rcl_action = dep.artifact("rcl_action"),
                 .rmw_cyclonedds_cpp = dep.artifact("rmw_cyclonedds_cpp"),
@@ -213,6 +222,7 @@ pub const ZigRos = struct {
                 .ament_index_cpp = dep.artifact("ament_index_cpp"),
                 .rclcpp = dep.artifact("rclcpp"),
                 .rclcpp_action = dep.artifact("rclcpp_action"),
+                .rclcpp_components = dep.artifact("rclcpp_components"),
                 .actionlib_msgs = extractInterface(dep, "actionlib_msgs"),
                 .diagnostic_msgs = extractInterface(dep, "diagnostic_msgs"),
                 .geometry_msgs = extractInterface(dep, "geometry_msgs"),
@@ -276,6 +286,7 @@ pub const ZigRos = struct {
         self.ros_libraries.builtin_interfaces.linkCpp(module);
         self.ros_libraries.statistics_msgs.link(module);
         self.ros_libraries.rosgraph_msgs.link(module);
+        self.ros_libraries.composition_interfaces.link(module);
 
         module.addIncludePath(self.ros_libraries.tracetools);
         module.addIncludePath(self.ros_libraries.rosidl_runtime_cpp);
@@ -284,6 +295,7 @@ pub const ZigRos = struct {
         module.linkLibrary(self.ros_libraries.ament_index_cpp);
         module.linkLibrary(self.ros_libraries.rclcpp);
         module.linkLibrary(self.ros_libraries.rclcpp_action);
+        module.linkLibrary(self.ros_libraries.rclcpp_components);
         module.linkLibrary(self.ros_libraries.rcpputils);
     }
 
@@ -446,6 +458,13 @@ pub fn build(b: *std.Build) void {
         .{ .upstream = upstream_dependencies.rcpputils, .rcutils = ros_libraries.rcutils },
     );
 
+    ros_libraries.console_bridge = console_bridge.buildWithArgs(b, compile_args);
+    ros_libraries.class_loader = class_loader.buildWithArgs(b, compile_args, .{
+        .console_bridge = ros_libraries.console_bridge,
+        .rcutils = ros_libraries.rcutils,
+        .rcpputils = ros_libraries.rcpputils,
+    });
+
     const rosidl_artifacts = rosidl.buildWithArgs(b, compile_args, .{
         .rosidl_upstream = b.dependency("rosidl", .{}),
         .rosidl_typesupport_upstream = b.dependency("rosidl_typesupport", .{}),
@@ -567,6 +586,7 @@ pub fn build(b: *std.Build) void {
         rcl_interfaces_artifacts.type_description_interfaces;
     ros_libraries.statistics_msgs = rcl_interfaces_artifacts.statistics_msgs;
     ros_libraries.rcl_interfaces = rcl_interfaces_artifacts.rcl_interfaces;
+    ros_libraries.composition_interfaces = rcl_interfaces_artifacts.composition_interfaces;
 
     ros_libraries.tracetools = ros2_tracing.build(b);
 
@@ -674,12 +694,13 @@ pub fn build(b: *std.Build) void {
 
     const rclcpp_artifacts = rclcpp.buildWithArgs(b, compile_args, .{
         .upstream = upstream_dependencies.rclcpp,
+        .class_loader = ros_libraries.class_loader,
+        .rcutils = ros_libraries.rcutils,
         .rcl = ros_libraries.rcl,
         .rcl_action = ros_libraries.rcl_action,
         .rcl_yaml_param_parser = ros_libraries.rcl_yaml_param_parser,
         .rcl_logging_interface = ros_libraries.rcl_logging_interface,
         .yaml = ros_libraries.yaml,
-        .rcutils = ros_libraries.rcutils,
         .rmw = ros_libraries.rmw,
         .rosidl_dynamic_typesupport = ros_libraries.rosidl_dynamic_typesupport,
         .rosidl_runtime_c = ros_libraries.rosidl_runtime_c,
@@ -697,7 +718,8 @@ pub fn build(b: *std.Build) void {
         .ament_index_cpp = ros_libraries.ament_index_cpp,
         .libstatistics_collector = ros_libraries.libstatistics_collector,
         .statistics_msgs = ros_libraries.statistics_msgs,
-        .rosgrapg_msgs = ros_libraries.rosgraph_msgs,
+        .composition_interfaces = ros_libraries.composition_interfaces,
+        .rosgraph_msgs = ros_libraries.rosgraph_msgs,
     }, .{
         .python = python,
         .empy = python_libraries.empy,
@@ -705,4 +727,5 @@ pub fn build(b: *std.Build) void {
     });
     ros_libraries.rclcpp = rclcpp_artifacts.rclcpp;
     ros_libraries.rclcpp_action = rclcpp_artifacts.rclcpp_action;
+    ros_libraries.rclcpp_components = rclcpp_artifacts.rclcpp_components;
 }

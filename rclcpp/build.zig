@@ -16,6 +16,7 @@ pub const Deps = struct {
     rcl_yaml_param_parser: *Compile,
     rcl_logging_interface: *Compile,
     yaml: *Compile,
+    class_loader: *Compile,
     rcutils: *Compile,
     rmw: *Compile,
     rosidl_dynamic_typesupport: *Compile,
@@ -34,7 +35,8 @@ pub const Deps = struct {
     builtin_interfaces: Interface,
     rcl_interfaces: Interface,
     statistics_msgs: Interface,
-    rosgrapg_msgs: Interface,
+    composition_interfaces: Interface,
+    rosgraph_msgs: Interface,
 };
 
 pub const BuildDeps = struct {
@@ -46,6 +48,7 @@ pub const BuildDeps = struct {
 pub const Artifacts = struct {
     rclcpp: *Compile,
     rclcpp_action: *Compile,
+    rclcpp_components: *Compile,
 };
 
 fn pythonStep(b: *std.Build, command: []const u8, build_deps: BuildDeps) *Run {
@@ -297,6 +300,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     });
     b.installArtifact(rclcpp);
 
+    // Actions
     var rclcpp_action = b.addLibrary(.{
         .name = "rclcpp_action",
         .root_module = b.createModule(.{
@@ -335,8 +339,44 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
 
     b.installArtifact(rclcpp_action);
 
+    // Components
+    // TODO: This is only the component_manager library, not the (zero-source)
+    // "component" interface library
+    var rclcpp_components = b.addLibrary(.{
+        .name = "rclcpp_components",
+        .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+            .pic = if (linkage == .dynamic) true else null,
+        }),
+        .linkage = linkage,
+    });
+
+    if (optimize == .ReleaseSmall and linkage == .static) {
+        rclcpp_components.link_function_sections = true;
+        rclcpp_components.link_data_sections = true;
+    }
+
+    zigros.linkDependencyStruct(rclcpp_components.root_module, deps, .cpp);
+    rclcpp_components.linkLibrary(rclcpp);
+
+    rclcpp_components.addIncludePath(upstream.path("rclcpp_components/include"));
+    rclcpp_components.installHeadersDirectory(
+        upstream.path("rclcpp_components/include"),
+        "",
+        .{ .include_extensions = &.{ ".h", ".hpp" } },
+    );
+
+    rclcpp_components.addCSourceFiles(.{
+        .root = upstream.path("rclcpp_components/src"),
+        .files = &.{"component_manager.cpp"},
+    });
+
+    b.installArtifact(rclcpp_components);
+
     return .{
         .rclcpp = rclcpp,
         .rclcpp_action = rclcpp_action,
+        .rclcpp_components = rclcpp_components,
     };
 }
