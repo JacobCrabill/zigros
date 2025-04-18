@@ -324,6 +324,7 @@ const sensor_msgs_files = [_][]const u8{
     "msg/RelativeHumidity.msg",
     "msg/Temperature.msg",
     "msg/TimeReference.msg",
+    "srv/SetCameraInfo.srv",
 };
 
 const shape_msgs_files = [_][]const u8{
