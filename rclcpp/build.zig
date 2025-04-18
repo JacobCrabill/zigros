@@ -13,6 +13,7 @@ pub const Deps = struct {
     upstream: *Dependency,
     rcl: *Compile,
     rcl_action: *Compile,
+    rcl_lifecycle: *Compile,
     rcl_yaml_param_parser: *Compile,
     rcl_logging_interface: *Compile,
     yaml: *Compile,
@@ -36,6 +37,7 @@ pub const Deps = struct {
     rcl_interfaces: Interface,
     statistics_msgs: Interface,
     composition_interfaces: Interface,
+    lifecycle_msgs: Interface,
     rosgraph_msgs: Interface,
 };
 
@@ -49,6 +51,7 @@ pub const Artifacts = struct {
     rclcpp: *Compile,
     rclcpp_action: *Compile,
     rclcpp_components: *Compile,
+    rclcpp_lifecycle: *Compile,
 };
 
 fn pythonStep(b: *std.Build, command: []const u8, build_deps: BuildDeps) *Run {
@@ -341,8 +344,6 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     b.installArtifact(rclcpp_action);
 
     // Components
-    // TODO: This is only the component_manager library, not the (zero-source)
-    // "component" interface library
     var rclcpp_components = b.addLibrary(.{
         .name = "rclcpp_components",
         .root_module = b.createModule(.{
@@ -376,9 +377,51 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
 
     b.installArtifact(rclcpp_components);
 
+    // Lifecycle
+    var rclcpp_lifecycle = b.addLibrary(.{
+        .name = "rclcpp_lifecycle",
+        .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+            .pic = if (linkage == .dynamic) true else null,
+        }),
+        .linkage = linkage,
+    });
+
+    if (optimize == .ReleaseSmall and linkage == .static) {
+        rclcpp_lifecycle.link_function_sections = true;
+        rclcpp_lifecycle.link_data_sections = true;
+    }
+
+    zigros.linkDependencyStruct(rclcpp_lifecycle, deps, .cpp);
+    rclcpp_lifecycle.linkLibrary(rclcpp);
+    rclcpp_lifecycle.installLibraryHeaders(rclcpp);
+
+    rclcpp_lifecycle.addIncludePath(upstream.path("rclcpp_lifecycle/include"));
+    rclcpp_lifecycle.installHeadersDirectory(
+        upstream.path("rclcpp_lifecycle/include"),
+        "",
+        .{ .include_extensions = &.{ ".h", ".hpp" } },
+    );
+
+    rclcpp_lifecycle.addCSourceFiles(.{
+        .root = upstream.path("rclcpp_lifecycle/src"),
+        .files = &.{
+            "lifecycle_node.cpp",
+            "lifecycle_node_interface_impl.cpp",
+            "managed_entity.cpp",
+            "node_interfaces/lifecycle_node_interface.cpp",
+            "state.cpp",
+            "transition.cpp",
+        },
+    });
+
+    b.installArtifact(rclcpp_lifecycle);
+
     return .{
         .rclcpp = rclcpp,
         .rclcpp_action = rclcpp_action,
         .rclcpp_components = rclcpp_components,
+        .rclcpp_lifecycle = rclcpp_lifecycle,
     };
 }

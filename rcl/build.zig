@@ -24,12 +24,14 @@ pub const Deps = struct {
     unique_identifier_msgs: Interface,
     builtin_interfaces: Interface,
     rcl_interfaces: Interface,
+    lifecycle_msgs: Interface,
 };
 
 pub const Artifacts = struct {
     rcl_yaml_param_parser: *Compile,
     rcl: *Compile,
     rcl_action: *Compile,
+    rcl_lifecycle: *Compile,
 };
 
 pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
@@ -191,9 +193,51 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
     });
     b.installArtifact(rcl_action);
 
+    var rcl_lifecycle = b.addLibrary(.{
+        .name = "rcl_lifecycle",
+        .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+            .pic = if (linkage == .dynamic) true else null,
+        }),
+        .linkage = linkage,
+    });
+
+    rcl_lifecycle.addIncludePath(deps.tracetools);
+
+    rcl_lifecycle.addIncludePath(upstream.path("rcl_lifecycle/include"));
+    rcl_lifecycle.addIncludePath(upstream.path("rcl_lifecycle/src"));
+    rcl_lifecycle.installHeadersDirectory(upstream.path("rcl_lifecycle/include"), "", .{});
+
+    zigros.linkDependencyStruct(rcl_lifecycle, deps, .c);
+    rcl_lifecycle.linkLibrary(rcl);
+    rcl_lifecycle.installLibraryHeaders(rcl);
+
+    rcl_lifecycle.addCSourceFiles(.{
+        .root = upstream.path("rcl_lifecycle/src"),
+        .files = &.{
+            "com_interface.c",
+            "default_state_machine.c",
+            "rcl_lifecycle.c",
+            "transition_map.c",
+        },
+        .flags = &.{
+            "-DROS_PACKAGE_NAME=\"rcl_lifecycle\"",
+            "-Wall",
+            "-Wextra",
+            "-Wpedantic",
+            "-Wformat=2",
+            "-Wconversion",
+            "-Wshadow",
+            "-Wsign-conversion",
+        },
+    });
+    b.installArtifact(rcl_lifecycle);
+
     return Artifacts{
         .rcl_yaml_param_parser = yaml_param_parser,
         .rcl = rcl,
         .rcl_action = rcl_action,
+        .rcl_lifecycle = rcl_lifecycle,
     };
 }

@@ -71,6 +71,7 @@ pub const RosLibraries = struct {
     statistics_msgs: RosidlGenerator.Interface,
     rcl_interfaces: RosidlGenerator.Interface,
     composition_interfaces: RosidlGenerator.Interface,
+    lifecycle_msgs: RosidlGenerator.Interface,
     tracetools: LazyPath,
     rcl_yaml_param_parser: *Compile,
     yaml: *Compile, // External
@@ -78,6 +79,7 @@ pub const RosLibraries = struct {
     class_loader: *Compile, // External
     rcl: *Compile,
     rcl_action: *Compile,
+    rcl_lifecycle: *Compile,
     rmw_cyclonedds_cpp: *Compile,
     cyclonedds: *Compile, // External
     libstatistics_collector: *Compile,
@@ -85,6 +87,7 @@ pub const RosLibraries = struct {
     rclcpp: *Compile,
     rclcpp_action: *Compile,
     rclcpp_components: *Compile,
+    rclcpp_lifecycle: *Compile,
     // common_interfaces:
     actionlib_msgs: RosidlGenerator.Interface,
     diagnostic_msgs: RosidlGenerator.Interface,
@@ -209,6 +212,7 @@ pub const ZigRos = struct {
                 .statistics_msgs = extractInterface(dep, "statistics_msgs"),
                 .rcl_interfaces = extractInterface(dep, "rcl_interfaces"),
                 .composition_interfaces = extractInterface(dep, "composition_interfaces"),
+                .lifecycle_msgs = extractInterface(dep, "lifecycle_msgs"),
                 .tracetools = dep.namedWriteFiles("tracetools").getDirectory(),
                 .rcl_yaml_param_parser = dep.artifact("rcl_yaml_param_parser"),
                 .yaml = dep.artifact("yaml"), // External
@@ -216,6 +220,7 @@ pub const ZigRos = struct {
                 .class_loader = dep.artifact("class_loader"), // External
                 .rcl = dep.artifact("rcl"),
                 .rcl_action = dep.artifact("rcl_action"),
+                .rcl_lifecycle = dep.artifact("rcl_lifecycle"),
                 .rmw_cyclonedds_cpp = dep.artifact("rmw_cyclonedds_cpp"),
                 .cyclonedds = dep.artifact("cyclonedds"), // External
                 .libstatistics_collector = dep.artifact("libstatistics_collector"),
@@ -223,6 +228,7 @@ pub const ZigRos = struct {
                 .rclcpp = dep.artifact("rclcpp"),
                 .rclcpp_action = dep.artifact("rclcpp_action"),
                 .rclcpp_components = dep.artifact("rclcpp_components"),
+                .rclcpp_lifecycle = dep.artifact("rclcpp_lifecycle"),
                 .actionlib_msgs = extractInterface(dep, "actionlib_msgs"),
                 .diagnostic_msgs = extractInterface(dep, "diagnostic_msgs"),
                 .geometry_msgs = extractInterface(dep, "geometry_msgs"),
@@ -266,6 +272,7 @@ pub const ZigRos = struct {
         step.linkLibrary(self.ros_libraries.rcutils);
         step.linkLibrary(self.ros_libraries.rcl);
         step.linkLibrary(self.ros_libraries.rcl_action);
+        step.linkLibrary(self.ros_libraries.rcl_lifecycle);
         step.linkLibrary(self.ros_libraries.rmw);
         step.linkLibrary(self.ros_libraries.rcl_yaml_param_parser);
         step.linkLibrary(self.ros_libraries.yaml);
@@ -280,6 +287,7 @@ pub const ZigRos = struct {
         step.installLibraryHeaders(self.ros_libraries.rcutils);
         step.installLibraryHeaders(self.ros_libraries.rcl);
         step.installLibraryHeaders(self.ros_libraries.rcl_action);
+        step.installLibraryHeaders(self.ros_libraries.rcl_lifecycle);
         step.installLibraryHeaders(self.ros_libraries.rmw);
         step.installLibraryHeaders(self.ros_libraries.rcl_yaml_param_parser);
         step.installLibraryHeaders(self.ros_libraries.yaml);
@@ -296,6 +304,7 @@ pub const ZigRos = struct {
         self.ros_libraries.statistics_msgs.link(step);
         self.ros_libraries.rosgraph_msgs.link(step);
         self.ros_libraries.composition_interfaces.link(step);
+        self.ros_libraries.lifecycle_msgs.link(step);
 
         step.addIncludePath(self.ros_libraries.tracetools);
         step.addIncludePath(self.ros_libraries.rosidl_runtime_cpp);
@@ -305,6 +314,7 @@ pub const ZigRos = struct {
         step.linkLibrary(self.ros_libraries.rclcpp);
         step.linkLibrary(self.ros_libraries.rclcpp_action);
         step.linkLibrary(self.ros_libraries.rclcpp_components);
+        step.linkLibrary(self.ros_libraries.rclcpp_lifecycle);
         step.linkLibrary(self.ros_libraries.rcpputils);
 
         step.installLibraryHeaders(self.ros_libraries.rosidl_typesupport_introspection_cpp);
@@ -313,6 +323,7 @@ pub const ZigRos = struct {
         step.installLibraryHeaders(self.ros_libraries.rclcpp);
         step.installLibraryHeaders(self.ros_libraries.rclcpp_action);
         step.installLibraryHeaders(self.ros_libraries.rclcpp_components);
+        step.installLibraryHeaders(self.ros_libraries.rclcpp_lifecycle);
         step.installLibraryHeaders(self.ros_libraries.rcpputils);
     }
 
@@ -607,6 +618,7 @@ pub fn build(b: *std.Build) void {
     ros_libraries.statistics_msgs = rcl_interfaces_artifacts.statistics_msgs;
     ros_libraries.rcl_interfaces = rcl_interfaces_artifacts.rcl_interfaces;
     ros_libraries.composition_interfaces = rcl_interfaces_artifacts.composition_interfaces;
+    ros_libraries.lifecycle_msgs = rcl_interfaces_artifacts.lifecycle_msgs;
 
     ros_libraries.tracetools = ros2_tracing.build(b);
 
@@ -658,6 +670,7 @@ pub fn build(b: *std.Build) void {
             .service_msgs = ros_libraries.service_msgs,
             .builtin_interfaces = ros_libraries.builtin_interfaces,
             .rcl_interfaces = ros_libraries.rcl_interfaces,
+            .lifecycle_msgs = ros_libraries.lifecycle_msgs,
             // TODO: still need to properly handle dependencies
             // (unique_identifier_msgs only needed as a transitive dependency from action_msgs)
             .unique_identifier_msgs = ros_libraries.unique_identifier_msgs,
@@ -667,6 +680,7 @@ pub fn build(b: *std.Build) void {
     ros_libraries.rcl_yaml_param_parser = rcl_artifacts.rcl_yaml_param_parser;
     ros_libraries.rcl = rcl_artifacts.rcl;
     ros_libraries.rcl_action = rcl_artifacts.rcl_action;
+    ros_libraries.rcl_lifecycle = rcl_artifacts.rcl_lifecycle;
 
     const cyclonedds = b.dependency("cyclonedds", compile_args).artifact("cyclonedds");
     // re export yaml so we can grab it directly from the zigros dependency later
@@ -718,6 +732,7 @@ pub fn build(b: *std.Build) void {
         .rcutils = ros_libraries.rcutils,
         .rcl = ros_libraries.rcl,
         .rcl_action = ros_libraries.rcl_action,
+        .rcl_lifecycle = ros_libraries.rcl_lifecycle,
         .rcl_yaml_param_parser = ros_libraries.rcl_yaml_param_parser,
         .rcl_logging_interface = ros_libraries.rcl_logging_interface,
         .yaml = ros_libraries.yaml,
@@ -739,6 +754,7 @@ pub fn build(b: *std.Build) void {
         .libstatistics_collector = ros_libraries.libstatistics_collector,
         .statistics_msgs = ros_libraries.statistics_msgs,
         .composition_interfaces = ros_libraries.composition_interfaces,
+        .lifecycle_msgs = ros_libraries.lifecycle_msgs,
         .rosgraph_msgs = ros_libraries.rosgraph_msgs,
     }, .{
         .python = python,
@@ -748,4 +764,5 @@ pub fn build(b: *std.Build) void {
     ros_libraries.rclcpp = rclcpp_artifacts.rclcpp;
     ros_libraries.rclcpp_action = rclcpp_artifacts.rclcpp_action;
     ros_libraries.rclcpp_components = rclcpp_artifacts.rclcpp_components;
+    ros_libraries.rclcpp_lifecycle = rclcpp_artifacts.rclcpp_lifecycle;
 }

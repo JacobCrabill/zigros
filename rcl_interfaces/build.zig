@@ -29,6 +29,7 @@ pub const Artifacts = struct {
     statistics_msgs: RosidlGenerator.Interface,
     rcl_interfaces: RosidlGenerator.Interface,
     composition_interfaces: RosidlGenerator.Interface,
+    lifecycle_msgs: RosidlGenerator.Interface,
 };
 
 pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: BuildDeps) Artifacts {
@@ -233,6 +234,34 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
 
     composition_interfaces.installArtifacts();
 
+    // Lifecyle Messages
+    var lifecycle_msgs = RosidlGenerator.create(
+        b,
+        "lifecycle_msgs",
+        deps.rosidl_generator,
+        build_deps.rosidl_generator,
+        args,
+    );
+
+    lifecycle_msgs.addInterfaces(
+        upstream.path("lifecycle_msgs"),
+        &.{
+            "msg/State.msg",
+            "msg/Transition.msg",
+            "msg/TransitionDescription.msg",
+            "msg/TransitionEvent.msg",
+            "srv/ChangeState.srv",
+            "srv/GetAvailableStates.srv",
+            "srv/GetAvailableTransitions.srv",
+            "srv/GetState.srv",
+        },
+    );
+
+    lifecycle_msgs.addDependency("builtin_interfaces", builtin_interfaces.artifacts);
+    lifecycle_msgs.addDependency("service_msgs", service_msgs.artifacts);
+
+    lifecycle_msgs.installArtifacts();
+
     return Artifacts{
         .builtin_interfaces = builtin_interfaces.artifacts,
         .rosgraph_msgs = rosgraph_msgs.artifacts,
@@ -243,5 +272,6 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
         .statistics_msgs = statistics_msgs.artifacts,
         .rcl_interfaces = rcl_interfaces.artifacts,
         .composition_interfaces = composition_interfaces.artifacts,
+        .lifecycle_msgs = lifecycle_msgs.artifacts,
     };
 }
