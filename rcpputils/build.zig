@@ -38,6 +38,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) *Compile {
     lib.addIncludePath(upstream.path("include"));
 
     lib.linkLibrary(deps.rcutils);
+    lib.installLibraryHeaders(deps.rcutils);
 
     lib.addCSourceFiles(.{
         .root = upstream.path(""),

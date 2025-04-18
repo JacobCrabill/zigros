@@ -113,6 +113,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
 
     rosidl_runtime_c.linkLibC();
     rosidl_runtime_c.linkLibrary(deps.rcutils);
+    rosidl_runtime_c.installLibraryHeaders(deps.rcutils);
     rosidl_runtime_c.addIncludePath(rosidl_typesupport_interface.getDirectory());
     rosidl_runtime_c.addIncludePath(upstream.path("rosidl_runtime_c/include"));
 
@@ -181,6 +182,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     rosidl_typesupport_introspection_c.linkLibC();
 
     rosidl_typesupport_introspection_c.linkLibrary(rosidl_runtime_c);
+    rosidl_typesupport_introspection_c.installLibraryHeaders(rosidl_runtime_c);
     rosidl_typesupport_introspection_c.addIncludePath(rosidl_typesupport_interface.getDirectory());
     rosidl_typesupport_introspection_c.addIncludePath(upstream.path("rosidl_typesupport_introspection_c/include"));
 
@@ -219,6 +221,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     rosidl_typesupport_introspection_cpp.linkLibCpp();
 
     rosidl_typesupport_introspection_cpp.linkLibrary(rosidl_runtime_c);
+    rosidl_typesupport_introspection_cpp.installLibraryHeaders(rosidl_runtime_c);
     rosidl_typesupport_introspection_cpp.addIncludePath(rosidl_typesupport_interface.getDirectory());
     rosidl_typesupport_introspection_cpp.addIncludePath(rosidl_runtime_cpp.getDirectory());
     rosidl_typesupport_introspection_cpp.addIncludePath(upstream.path("rosidl_typesupport_introspection_cpp/include"));
@@ -308,6 +311,9 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     rosidl_typesupport_c.linkLibrary(deps.rcutils);
     rosidl_typesupport_c.linkLibrary(deps.rcpputils);
     rosidl_typesupport_c.linkLibrary(rosidl_runtime_c);
+    rosidl_typesupport_c.installLibraryHeaders(deps.rcutils);
+    rosidl_typesupport_c.installLibraryHeaders(deps.rcpputils);
+    rosidl_typesupport_c.installLibraryHeaders(rosidl_runtime_c);
     rosidl_typesupport_c.addIncludePath(rosidl_typesupport_interface.getDirectory());
     rosidl_typesupport_c.addIncludePath(typesupport_upstream.path("rosidl_typesupport_c/include"));
 
@@ -365,6 +371,10 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     rosidl_typesupport_cpp.linkLibrary(deps.rcpputils);
     rosidl_typesupport_cpp.linkLibrary(rosidl_runtime_c);
     rosidl_typesupport_cpp.linkLibrary(rosidl_typesupport_c);
+    rosidl_typesupport_cpp.installLibraryHeaders(deps.rcutils);
+    rosidl_typesupport_cpp.installLibraryHeaders(deps.rcpputils);
+    rosidl_typesupport_cpp.installLibraryHeaders(rosidl_runtime_c);
+    rosidl_typesupport_cpp.installLibraryHeaders(rosidl_typesupport_c);
     rosidl_typesupport_cpp.addIncludePath(rosidl_typesupport_interface.getDirectory());
     rosidl_typesupport_cpp.addIncludePath(typesupport_upstream.path("rosidl_typesupport_cpp/include"));
 
@@ -429,6 +439,8 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     rosidl_dynamic_typesupport.linkLibC();
     rosidl_dynamic_typesupport.linkLibrary(deps.rcutils);
     rosidl_dynamic_typesupport.linkLibrary(rosidl_runtime_c);
+    rosidl_dynamic_typesupport.installLibraryHeaders(deps.rcutils);
+    rosidl_dynamic_typesupport.installLibraryHeaders(rosidl_runtime_c);
     rosidl_dynamic_typesupport.addIncludePath(rosidl_typesupport_interface.getDirectory());
     rosidl_dynamic_typesupport.addIncludePath(dynamic_typesupport_upstream.path("include"));
 

@@ -76,6 +76,8 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
 
     yaml_param_parser.linkLibrary(deps.yaml);
     yaml_param_parser.linkLibrary(deps.rcutils);
+    yaml_param_parser.installLibraryHeaders(deps.yaml);
+    yaml_param_parser.installLibraryHeaders(deps.rcutils);
     b.installArtifact(yaml_param_parser);
 
     var rcl = b.addLibrary(.{
@@ -96,6 +98,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
 
     zigros.linkDependencyStruct(rcl, deps, .c);
     rcl.linkLibrary(yaml_param_parser);
+    rcl.installLibraryHeaders(yaml_param_parser);
 
     rcl.addCSourceFiles(.{
         .root = upstream.path("rcl/src/rcl"),
@@ -167,6 +170,8 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
     zigros.linkDependencyStruct(rcl_action, deps, .c);
     rcl_action.linkLibrary(yaml_param_parser);
     rcl_action.linkLibrary(rcl);
+    rcl_action.installLibraryHeaders(yaml_param_parser);
+    rcl_action.installLibraryHeaders(rcl);
 
     rcl_action.addCSourceFiles(.{
         .root = upstream.path("rcl_action/src/rcl_action"),
