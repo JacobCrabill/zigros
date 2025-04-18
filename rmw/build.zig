@@ -38,7 +38,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) *Compile {
     lib.linkLibC();
     lib.addIncludePath(upstream.path("rmw/include"));
 
-    zigros.linkDependencyStruct(lib.root_module, deps, .c);
+    zigros.linkDependencyStruct(lib, deps, .c);
 
     lib.addCSourceFiles(.{
         .root = upstream.path("rmw"),

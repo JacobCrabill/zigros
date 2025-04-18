@@ -66,14 +66,14 @@ pub const Interface = struct {
     typesupport_introspection_c: *Compile,
     typesupport_introspection_cpp: *Compile,
 
-    pub fn link(self: Interface, target: *Module) void {
+    pub fn link(self: Interface, target: *Compile) void {
         self.linkC(target);
         self.linkCpp(target);
     }
 
     // Link against only the c libraries. In theory useful for rcl only builds
     // though all rmw implementations require c++ so in practice not that useful
-    pub fn linkC(self: Interface, target: *Module) void {
+    pub fn linkC(self: Interface, target: *Compile) void {
         target.linkLibrary(self.interface_c);
         target.linkLibrary(self.typesupport_c);
         target.linkLibrary(self.typesupport_introspection_c);
@@ -85,7 +85,7 @@ pub const Interface = struct {
     // Note this function should only be used if linkC has been called previously on the same module,
     // otherwise the standard link function should be used
     // use the normal public link function for general c++ lingking
-    pub fn linkCpp(self: Interface, target: *Module) void {
+    pub fn linkCpp(self: Interface, target: *Compile) void {
         target.addIncludePath(self.interface_cpp);
         target.linkLibrary(self.typesupport_cpp);
         target.linkLibrary(self.typesupport_introspection_cpp);
@@ -385,12 +385,12 @@ pub fn addInterfaces(
 pub fn addDependency(self: *RosidlGenerator, name: []const u8, dependency: Interface) void {
     self.type_description.addIncludePath(name, dependency.share);
 
-    dependency.linkC(self.generator_c.artifact.root_module);
-    dependency.linkC(self.typesupport_c.artifact.root_module);
-    dependency.linkC(self.typesupport_introspection_c.artifact.root_module);
+    dependency.linkC(self.generator_c.artifact);
+    dependency.linkC(self.typesupport_c.artifact);
+    dependency.linkC(self.typesupport_introspection_c.artifact);
 
-    dependency.link(self.typesupport_cpp.artifact.root_module);
-    dependency.link(self.typesupport_introspection_cpp.artifact.root_module);
+    dependency.link(self.typesupport_cpp.artifact);
+    dependency.link(self.typesupport_introspection_cpp.artifact);
 }
 
 const PythonArguments = union(enum) {

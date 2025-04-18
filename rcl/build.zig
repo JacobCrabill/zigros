@@ -94,7 +94,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
     rcl.addIncludePath(upstream.path("rcl/src"));
     rcl.installHeadersDirectory(upstream.path("rcl/include"), "", .{});
 
-    zigros.linkDependencyStruct(rcl.root_module, deps, .c);
+    zigros.linkDependencyStruct(rcl, deps, .c);
     rcl.linkLibrary(yaml_param_parser);
 
     rcl.addCSourceFiles(.{
@@ -164,7 +164,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
     // Private headers that shouldn't be installed
     rcl_action.installHeadersDirectory(upstream.path("rcl_action/src/rcl_action"), "", .{});
 
-    zigros.linkDependencyStruct(rcl_action.root_module, deps, .c);
+    zigros.linkDependencyStruct(rcl_action, deps, .c);
     rcl_action.linkLibrary(yaml_param_parser);
     rcl_action.linkLibrary(rcl);
 

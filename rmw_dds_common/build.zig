@@ -52,7 +52,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     }
 
     rmw_dds_common.linkLibCpp();
-    zigros.linkDependencyStruct(rmw_dds_common.root_module, deps, .cpp);
+    zigros.linkDependencyStruct(rmw_dds_common, deps, .cpp);
 
     // Generate interfaces that the rmw_dds_common artifact depensd on
     var interface_generator = RosidlGenerator.create(
@@ -71,7 +71,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
 
     rmw_dds_common.linkLibrary(deps.rosidl_runtime_c);
 
-    interface_generator.artifacts.link(rmw_dds_common.root_module);
+    interface_generator.artifacts.link(rmw_dds_common);
 
     rmw_dds_common.addIncludePath(upstream.path("rmw_dds_common/include"));
 

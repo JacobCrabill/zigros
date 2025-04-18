@@ -31,13 +31,13 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) *Compile {
         },
         .flags = &.{ "--std=c++17", "-Wall", "-Werror", "-Wpedantic" },
     });
-    zigros.linkDependencyStruct(class_loader, deps, .cpp);
 
     const class_loader_lib = b.addLibrary(.{
         .name = "class_loader",
         .root_module = class_loader,
         .linkage = args.linkage,
     });
+    zigros.linkDependencyStruct(class_loader_lib, deps, .cpp);
     class_loader_lib.installLibraryHeaders(deps.console_bridge);
     class_loader_lib.installHeadersDirectory(
         upstream.path("include"),

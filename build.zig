@@ -262,50 +262,70 @@ pub const ZigRos = struct {
         };
     }
 
-    pub fn linkRcl(self: ZigRos, module: *Module) void {
-        module.linkLibrary(self.ros_libraries.rcutils);
-        module.linkLibrary(self.ros_libraries.rcl);
-        module.linkLibrary(self.ros_libraries.rcl_action);
-        module.linkLibrary(self.ros_libraries.rmw);
-        module.linkLibrary(self.ros_libraries.rcl_yaml_param_parser);
-        module.linkLibrary(self.ros_libraries.yaml);
-        self.ros_libraries.rcl_interfaces.linkC(module);
-        self.ros_libraries.type_description_interfaces.linkC(module);
-        module.linkLibrary(self.ros_libraries.rosidl_runtime_c);
-        self.ros_libraries.service_msgs.linkC(module);
-        self.ros_libraries.builtin_interfaces.linkC(module);
-        module.addIncludePath(self.ros_libraries.rosidl_typesupport_interface);
-        module.linkLibrary(self.ros_libraries.rosidl_dynamic_typesupport);
+    pub fn linkRcl(self: ZigRos, step: *Compile) void {
+        step.linkLibrary(self.ros_libraries.rcutils);
+        step.linkLibrary(self.ros_libraries.rcl);
+        step.linkLibrary(self.ros_libraries.rcl_action);
+        step.linkLibrary(self.ros_libraries.rmw);
+        step.linkLibrary(self.ros_libraries.rcl_yaml_param_parser);
+        step.linkLibrary(self.ros_libraries.yaml);
+        self.ros_libraries.rcl_interfaces.linkC(step);
+        self.ros_libraries.type_description_interfaces.linkC(step);
+        step.linkLibrary(self.ros_libraries.rosidl_runtime_c);
+        self.ros_libraries.service_msgs.linkC(step);
+        self.ros_libraries.builtin_interfaces.linkC(step);
+        step.addIncludePath(self.ros_libraries.rosidl_typesupport_interface);
+        step.linkLibrary(self.ros_libraries.rosidl_dynamic_typesupport);
+
+        step.installLibraryHeaders(self.ros_libraries.rcutils);
+        step.installLibraryHeaders(self.ros_libraries.rcl);
+        step.installLibraryHeaders(self.ros_libraries.rcl_action);
+        step.installLibraryHeaders(self.ros_libraries.rmw);
+        step.installLibraryHeaders(self.ros_libraries.rcl_yaml_param_parser);
+        step.installLibraryHeaders(self.ros_libraries.yaml);
+        step.installLibraryHeaders(self.ros_libraries.rosidl_runtime_c);
+        step.installLibraryHeaders(self.ros_libraries.rosidl_dynamic_typesupport);
     }
 
-    pub fn linkRclcpp(self: ZigRos, module: *Module) void {
-        self.linkRcl(module);
-        self.ros_libraries.rcl_interfaces.linkCpp(module);
-        self.ros_libraries.type_description_interfaces.linkCpp(module);
-        self.ros_libraries.service_msgs.linkCpp(module);
-        self.ros_libraries.builtin_interfaces.linkCpp(module);
-        self.ros_libraries.statistics_msgs.link(module);
-        self.ros_libraries.rosgraph_msgs.link(module);
-        self.ros_libraries.composition_interfaces.link(module);
+    pub fn linkRclcpp(self: ZigRos, step: *Compile) void {
+        self.linkRcl(step);
+        self.ros_libraries.rcl_interfaces.linkCpp(step);
+        self.ros_libraries.type_description_interfaces.linkCpp(step);
+        self.ros_libraries.service_msgs.linkCpp(step);
+        self.ros_libraries.builtin_interfaces.linkCpp(step);
+        self.ros_libraries.statistics_msgs.link(step);
+        self.ros_libraries.rosgraph_msgs.link(step);
+        self.ros_libraries.composition_interfaces.link(step);
 
-        module.addIncludePath(self.ros_libraries.tracetools);
-        module.addIncludePath(self.ros_libraries.rosidl_runtime_cpp);
-        module.linkLibrary(self.ros_libraries.rosidl_typesupport_introspection_cpp);
-        module.linkLibrary(self.ros_libraries.libstatistics_collector);
-        module.linkLibrary(self.ros_libraries.ament_index_cpp);
-        module.linkLibrary(self.ros_libraries.rclcpp);
-        module.linkLibrary(self.ros_libraries.rclcpp_action);
-        module.linkLibrary(self.ros_libraries.rclcpp_components);
-        module.linkLibrary(self.ros_libraries.rcpputils);
+        step.addIncludePath(self.ros_libraries.tracetools);
+        step.addIncludePath(self.ros_libraries.rosidl_runtime_cpp);
+        step.linkLibrary(self.ros_libraries.rosidl_typesupport_introspection_cpp);
+        step.linkLibrary(self.ros_libraries.libstatistics_collector);
+        step.linkLibrary(self.ros_libraries.ament_index_cpp);
+        step.linkLibrary(self.ros_libraries.rclcpp);
+        step.linkLibrary(self.ros_libraries.rclcpp_action);
+        step.linkLibrary(self.ros_libraries.rclcpp_components);
+        step.linkLibrary(self.ros_libraries.rcpputils);
+
+        step.installLibraryHeaders(self.ros_libraries.rosidl_typesupport_introspection_cpp);
+        step.installLibraryHeaders(self.ros_libraries.libstatistics_collector);
+        step.installLibraryHeaders(self.ros_libraries.ament_index_cpp);
+        step.installLibraryHeaders(self.ros_libraries.rclcpp);
+        step.installLibraryHeaders(self.ros_libraries.rclcpp_action);
+        step.installLibraryHeaders(self.ros_libraries.rclcpp_components);
+        step.installLibraryHeaders(self.ros_libraries.rcpputils);
     }
 
-    pub fn linkRmwCycloneDds(self: ZigRos, module: *Module) void {
-        module.linkLibrary(self.ros_libraries.rmw_cyclonedds_cpp);
-        module.linkLibrary(self.ros_libraries.cyclonedds);
+    pub fn linkRmwCycloneDds(self: ZigRos, step: *Compile) void {
+        step.linkLibrary(self.ros_libraries.rmw_cyclonedds_cpp);
+        step.linkLibrary(self.ros_libraries.cyclonedds);
+        step.installLibraryHeaders(self.ros_libraries.rmw_cyclonedds_cpp);
+        step.installLibraryHeaders(self.ros_libraries.cyclonedds);
     }
 
-    pub fn linkLoggerSpd(self: ZigRos, module: *Module) void {
-        module.linkLibrary(self.ros_libraries.rcl_logging_spdlog);
+    pub fn linkLoggerSpd(self: ZigRos, step: *Compile) void {
+        step.linkLibrary(self.ros_libraries.rcl_logging_spdlog);
+        step.installLibraryHeaders(self.ros_libraries.rcl_logging_spdlog);
     }
 
     pub fn createInterface(

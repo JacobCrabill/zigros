@@ -49,7 +49,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) *Compile {
 
     lib.linkLibCpp();
 
-    zigros.linkDependencyStruct(lib.root_module, deps, .cpp);
+    zigros.linkDependencyStruct(lib, deps, .cpp);
 
     lib.addIncludePath(upstream.path("rmw_cyclonedds/rmw_cyclonedds_cpp/src"));
     lib.addCSourceFiles(.{

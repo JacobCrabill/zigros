@@ -7,14 +7,11 @@ pub const Language = enum {
     cpp,
 };
 
-// TODO: This should operate on std.Build.Step.Compile instead, so that it can
-// forward include directories to downstream components with installLibraryHeaders()
-//
 // This links all relevant fields in a struct of dependencies to the provided module.
 // This will link any *Compile field, add all lazy paths as include files, and use the link helper
 // with any provided Interface types. the lang arg is only used for interfaces for now. If .c is
 // provided, linkC is called. If .cpp is provided it calls link.
-pub fn linkDependencyStruct(module: *std.Build.Module, dependencies: anytype, lang: Language) void {
+pub fn linkDependencyStruct(step: *std.Build.Step.Compile, dependencies: anytype, lang: Language) void {
     comptime switch (@typeInfo(@TypeOf(dependencies))) {
         .@"struct" => {},
         else => @compileError("dependency type must be a struct"),
@@ -22,13 +19,14 @@ pub fn linkDependencyStruct(module: *std.Build.Module, dependencies: anytype, la
     const deps_info = @typeInfo(@TypeOf(dependencies)).@"struct";
     inline for (deps_info.fields) |field| {
         if (field.type == *std.Build.Step.Compile) {
-            module.linkLibrary(@field(dependencies, field.name));
+            step.linkLibrary(@field(dependencies, field.name));
+            step.installLibraryHeaders(@field(dependencies, field.name));
         } else if (field.type == std.Build.LazyPath) {
-            module.addIncludePath(@field(dependencies, field.name));
+            step.addIncludePath(@field(dependencies, field.name));
         } else if (field.type == Interface) {
             switch (lang) {
-                .c => @field(dependencies, field.name).linkC(module),
-                .cpp => @field(dependencies, field.name).link(module),
+                .c => @field(dependencies, field.name).linkC(step),
+                .cpp => @field(dependencies, field.name).link(step),
             }
         }
     }

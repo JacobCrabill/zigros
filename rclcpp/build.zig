@@ -188,7 +188,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
         rclcpp.installHeader(get_output, std.mem.trimLeft(u8, get_output_arg, "include/"));
     }
 
-    zigros.linkDependencyStruct(rclcpp.root_module, deps, .cpp);
+    zigros.linkDependencyStruct(rclcpp, deps, .cpp);
 
     rclcpp.addIncludePath(upstream.path("rclcpp/include"));
     rclcpp.installHeadersDirectory(
@@ -316,8 +316,9 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
         rclcpp_action.link_data_sections = true;
     }
 
-    zigros.linkDependencyStruct(rclcpp_action.root_module, deps, .cpp);
+    zigros.linkDependencyStruct(rclcpp_action, deps, .cpp);
     rclcpp_action.linkLibrary(rclcpp);
+    rclcpp_action.installLibraryHeaders(rclcpp);
 
     rclcpp_action.addIncludePath(upstream.path("rclcpp_action/include"));
     rclcpp_action.installHeadersDirectory(
@@ -357,8 +358,9 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
         rclcpp_components.link_data_sections = true;
     }
 
-    zigros.linkDependencyStruct(rclcpp_components.root_module, deps, .cpp);
+    zigros.linkDependencyStruct(rclcpp_components, deps, .cpp);
     rclcpp_components.linkLibrary(rclcpp);
+    rclcpp_components.installLibraryHeaders(rclcpp);
 
     rclcpp_components.addIncludePath(upstream.path("rclcpp_components/include"));
     rclcpp_components.installHeadersDirectory(

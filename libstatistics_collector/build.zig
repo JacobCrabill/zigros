@@ -60,7 +60,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) *Compile {
         .{ .include_extensions = &.{ ".h", ".hpp" } },
     );
 
-    zigros.linkDependencyStruct(lib.root_module, deps, .cpp);
+    zigros.linkDependencyStruct(lib, deps, .cpp);
 
     lib.addCSourceFiles(.{
         .root = upstream.path("src"),
