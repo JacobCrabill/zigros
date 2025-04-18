@@ -322,14 +322,16 @@ pub fn addInterfaces(
     base_path: std.Build.LazyPath,
     files: []const []const u8,
 ) void {
-    // TODO add actions
     for (files) |file| {
         self.adapter.addInterface(base_path, file);
+
+        const ext_idx = std.mem.lastIndexOfScalar(u8, file, '.') orelse @panic("Invalid interface file name!");
+        const file_minus_ext = file[0 .. ext_idx + 1];
 
         const idl = std.fmt.allocPrint(
             self.owner.allocator,
             "{s}idl",
-            .{file[0 .. file.len - 3]},
+            .{file_minus_ext},
         ) catch @panic("OOM");
 
         self.type_description.addIdlTuple(idl, self.adapter.output);
@@ -337,7 +339,7 @@ pub fn addInterfaces(
         const type_description = std.fmt.allocPrint(
             self.owner.allocator,
             "{s}json",
-            .{file[0 .. file.len - 3]},
+            .{file_minus_ext},
         ) catch @panic("OOM");
 
         self.generator_c.addInterface(base_path, file);
