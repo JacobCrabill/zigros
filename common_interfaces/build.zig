@@ -152,6 +152,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     sensor_msgs.addInterfaces(upstream.path("sensor_msgs"), &sensor_msgs_files);
     sensor_msgs.addDependency("builtin_interfaces", deps.builtin_interfaces);
     sensor_msgs.addDependency("std_msgs", std_msgs.artifacts);
+    sensor_msgs.addDependency("service_msgs", deps.service_msgs);
     sensor_msgs.addDependency("geometry_msgs", geometry_msgs.artifacts);
     // NOTE: This interface ALSO has plain C++ headers associated with it!
     // We will add a NamedLazyPath to be extraced from the dependency later.
