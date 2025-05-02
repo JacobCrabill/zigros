@@ -682,9 +682,11 @@ pub fn build(b: *std.Build) void {
     ros_libraries.rcl_action = rcl_artifacts.rcl_action;
     ros_libraries.rcl_lifecycle = rcl_artifacts.rcl_lifecycle;
 
-    const cyclonedds = b.dependency("cyclonedds", compile_args).artifact("cyclonedds");
-    // re export yaml so we can grab it directly from the zigros dependency later
+    const cyclonedds_dep = b.dependency("cyclonedds", compile_args);
+    const cyclonedds = cyclonedds_dep.artifact("cyclonedds");
+    const iox_roudi = cyclonedds_dep.artifact("iox-roudi");
     b.installArtifact(cyclonedds);
+    b.installArtifact(iox_roudi);
 
     ros_libraries.rmw_cyclonedds_cpp = rmw_cyclonedds.buildWithArgs(b, compile_args, .{
         .upstream = upstream_dependencies.rmw_cyclonedds,
