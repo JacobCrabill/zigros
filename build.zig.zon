@@ -90,8 +90,8 @@
             .hash = "N-V-__8AAJatCADp2QPDFq8wzBG--OTM2oVMdj3kk5FLvnk0",
         },
         .cyclonedds = .{
-            .url = "https://github.com/zig-robotics/cyclonedds/archive/tags/0.10.5.tar.gz",
-            .hash = "cyclonedds-0.10.5-VJFfyyI6AADru0dTKFhIVjebuuArgt68TI77ARc1_qD8",
+            .url = "https://github.com/zig-robotics/cyclonedds/archive/b005e294b5b746dbe1fc175af87a01dc176b7cab.tar.gz",
+            .hash = "cyclonedds-0.10.5-VJFfy2o7AAC41MepHyY8g_XOHLUIb7fzJCMazrW8uZRv",
         },
         .yaml = .{
             .url = "https://github.com/zig-robotics/libyaml/archive/tags/0.2.5.tar.gz",

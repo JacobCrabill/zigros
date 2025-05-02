@@ -74,6 +74,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) *Compile {
             "-fvisibility-inlines-hidden",
             // Note, this is needed because the desserialization does a pointer cast on a byte array to extract larger integers, which is technically missaligned pointer access and should be implemented differently
             "-fno-sanitize=alignment",
+            "-DDDS_HAS_SHM=1", // Must re-apply the compiler flags from cyclonedds! (Until we upgrade to the refactored version)
         },
     });
 
