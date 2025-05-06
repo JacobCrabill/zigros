@@ -12,6 +12,7 @@ const common_interfaces = @import("common_interfaces/build.zig");
 const ros2_tracing = @import("ros2_tracing/build.zig");
 const rcl = @import("rcl/build.zig");
 const rmw_cyclonedds = @import("rmw_cyclonedds/build.zig");
+const rmw_fastrtps = @import("rmw_fastrtps/build.zig");
 const libstatistics_collector = @import("libstatistics_collector/build.zig");
 const ament_index = @import("ament_index/build.zig");
 const rclcpp = @import("rclcpp/build.zig");
@@ -32,6 +33,8 @@ const UpstreamDependencies = struct {
     rosidl: *Dependency,
     rosidl_typesupport: *Dependency,
     rosidl_dynamic_typesupport: *Dependency,
+    rosidl_dynamic_typesupport_fastrtps: *Dependency,
+    rosidl_typesupport_fastrtps: *Dependency,
     rmw: *Dependency,
     rmw_dds_common: *Dependency,
     rcl_logging: *Dependency,
@@ -41,6 +44,7 @@ const UpstreamDependencies = struct {
     ros2_tracing: *Dependency,
     rcl: *Dependency,
     rmw_cyclonedds: *Dependency,
+    rmw_fastrtps: *Dependency,
     libstatistics_collector: *Dependency,
     ament_index: *Dependency,
     rclcpp: *Dependency,
@@ -57,6 +61,9 @@ pub const RosLibraries = struct {
     rosidl_typesupport_c: *Compile,
     rosidl_typesupport_cpp: *Compile,
     rosidl_dynamic_typesupport: *Compile,
+    rosidl_dynamic_typesupport_fastrtps: *Compile,
+    rosidl_typesupport_fastrtps_c: *Compile,
+    rosidl_typesupport_fastrtps_cpp: *Compile,
     rmw: *Compile,
     rmw_dds_common: *Compile,
     rmw_dds_common_interface: RosidlGenerator.Interface,
@@ -81,7 +88,11 @@ pub const RosLibraries = struct {
     rcl_action: *Compile,
     rcl_lifecycle: *Compile,
     rmw_cyclonedds_cpp: *Compile,
+    rmw_fastrtps_cpp: *Compile,
+    rmw_fastrtps_shared_cpp: *Compile,
     cyclonedds: *Compile, // External
+    fastdds: *Compile, // External
+    fastcdr: *Compile, // External
     libstatistics_collector: *Compile,
     ament_index_cpp: *Compile,
     rclcpp: *Compile,
@@ -198,6 +209,9 @@ pub const ZigRos = struct {
                     "rosidl_typesupport_introspection_cpp",
                 ),
                 .rosidl_dynamic_typesupport = dep.artifact("rosidl_dynamic_typesupport"),
+                .rosidl_dynamic_typesupport_fastrtps = dep.artifact("rosidl_dynamic_typesupport_fastrtps"),
+                .rosidl_typesupport_fastrtps_c = dep.artifact("rosidl_typesupport_fastrtps_c"),
+                .rosidl_typesupport_fastrtps_cpp = dep.artifact("rosidl_typesupport_fastrtps_cpp"),
                 .rmw = dep.artifact("rmw"),
                 .rmw_dds_common = dep.artifact("rmw_dds_common"),
                 .rmw_dds_common_interface = extractInterface(dep, "rmw_dds_common"),
@@ -222,7 +236,11 @@ pub const ZigRos = struct {
                 .rcl_action = dep.artifact("rcl_action"),
                 .rcl_lifecycle = dep.artifact("rcl_lifecycle"),
                 .rmw_cyclonedds_cpp = dep.artifact("rmw_cyclonedds_cpp"),
+                .rmw_fastrtps_cpp = dep.artifact("rmw_fastrtps_cpp"),
+                .rmw_fastrtps_shared_cpp = dep.artifact("rmw_fastrtps_shared_cpp"),
                 .cyclonedds = dep.artifact("cyclonedds"), // External
+                .fastdds = dep.artifact("fast-dds"), // External
+                .fastcdr = dep.artifact("fast-cdr"), // External
                 .libstatistics_collector = dep.artifact("libstatistics_collector"),
                 .ament_index_cpp = dep.artifact("ament_index_cpp"),
                 .rclcpp = dep.artifact("rclcpp"),
@@ -334,6 +352,23 @@ pub const ZigRos = struct {
         step.installLibraryHeaders(self.ros_libraries.cyclonedds);
     }
 
+    pub fn linkRmwFastRtps(self: ZigRos, step: *Compile) void {
+        step.linkLibrary(self.ros_libraries.rmw_fastrtps_cpp);
+        step.linkLibrary(self.ros_libraries.rmw_fastrtps_shared_cpp);
+        step.linkLibrary(self.ros_libraries.fastdds);
+        step.linkLibrary(self.ros_libraries.fastcdr);
+        step.linkLibrary(self.ros_libraries.rosidl_dynamic_typesupport_fastrtps);
+        step.linkLibrary(self.ros_libraries.rosidl_typesupport_fastrtps_c);
+        step.linkLibrary(self.ros_libraries.rosidl_typesupport_fastrtps_cpp);
+        step.installLibraryHeaders(self.ros_libraries.rmw_fastrtps_cpp);
+        step.installLibraryHeaders(self.ros_libraries.rmw_fastrtps_shared_cpp);
+        step.installLibraryHeaders(self.ros_libraries.fastdds);
+        step.installLibraryHeaders(self.ros_libraries.fastcdr);
+        step.installLibraryHeaders(self.ros_libraries.rosidl_dynamic_typesupport_fastrtps);
+        step.installLibraryHeaders(self.ros_libraries.rosidl_typesupport_fastrtps_c);
+        step.installLibraryHeaders(self.ros_libraries.rosidl_typesupport_fastrtps_cpp);
+    }
+
     pub fn linkLoggerSpd(self: ZigRos, step: *Compile) void {
         step.linkLibrary(self.ros_libraries.rcl_logging_spdlog);
         step.installLibraryHeaders(self.ros_libraries.rcl_logging_spdlog);
@@ -431,6 +466,8 @@ pub fn build(b: *std.Build) void {
         .rosidl = b.dependency("rosidl", .{}),
         .rosidl_typesupport = b.dependency("rosidl_typesupport", .{}),
         .rosidl_dynamic_typesupport = b.dependency("rosidl_dynamic_typesupport", .{}),
+        .rosidl_dynamic_typesupport_fastrtps = b.dependency("rosidl_dynamic_typesupport_fastrtps", .{}),
+        .rosidl_typesupport_fastrtps = b.dependency("rosidl_typesupport_fastrtps", .{}),
         .rmw = b.dependency("rmw", .{}),
         .rmw_dds_common = b.dependency("rmw_dds_common", .{}),
         .rcl_logging = b.dependency("rcl_logging", .{}),
@@ -440,6 +477,7 @@ pub fn build(b: *std.Build) void {
         .ros2_tracing = b.dependency("ros2_tracing", .{}),
         .rcl = b.dependency("rcl", .{}),
         .rmw_cyclonedds = b.dependency("rmw_cyclonedds", .{}),
+        .rmw_fastrtps = b.dependency("rmw_fastrtps", .{}),
         .libstatistics_collector = b.dependency("libstatistics_collector", .{}),
         .ament_index = b.dependency("ament_index", .{}),
         .rclcpp = if (compile_args.linkage == .static) b.lazyDependency("rclcpp", .{}) orelse blk: {
@@ -704,6 +742,36 @@ pub fn build(b: *std.Build) void {
         .rosidl_typesupport_interface = ros_libraries.rosidl_typesupport_interface,
         .rosidl_dynamic_typesupport = ros_libraries.rosidl_dynamic_typesupport,
     });
+
+    const fastdds = b.dependency("fastdds", compile_args).artifact("fast-dds");
+    const fastcdr = b.dependency("fastcdr", compile_args).artifact("fast-cdr");
+    b.installArtifact(fastcdr);
+    b.installArtifact(fastdds);
+
+    const fastrtps_libs = rmw_fastrtps.buildWithArgs(b, compile_args, .{
+        .upstream = upstream_dependencies.rmw_fastrtps,
+        .rosidl_dynamic_typesupport_fastrtps_upstream = b.dependency("rosidl_dynamic_typesupport_fastrtps", .{}),
+        .rosidl_typesupport_fastrtps_upstream = b.dependency("rosidl_typesupport_fastrtps", .{}),
+        .rcutils = ros_libraries.rcutils,
+        .tracetools = ros_libraries.tracetools,
+        .fastdds = fastdds,
+        .fastcdr = fastcdr,
+        .rcpputils = ros_libraries.rcpputils,
+        .rmw = ros_libraries.rmw,
+        .rmw_dds_common = ros_libraries.rmw_dds_common,
+        .rmw_dds_common_interface = ros_libraries.rmw_dds_common_interface,
+        .rosidl_runtime_c = ros_libraries.rosidl_runtime_c,
+        .rosidl_runtime_cpp = ros_libraries.rosidl_runtime_cpp,
+        .rosidl_typesupport_introspection_c = ros_libraries.rosidl_typesupport_introspection_c,
+        .rosidl_typesupport_introspection_cpp = ros_libraries.rosidl_typesupport_introspection_cpp,
+        .rosidl_typesupport_interface = ros_libraries.rosidl_typesupport_interface,
+        .rosidl_dynamic_typesupport = ros_libraries.rosidl_dynamic_typesupport,
+    });
+    ros_libraries.rmw_fastrtps_cpp = fastrtps_libs.rmw_fastrtps;
+    ros_libraries.rmw_fastrtps_shared_cpp = fastrtps_libs.rmw_fastrtps_shared;
+    ros_libraries.rosidl_dynamic_typesupport_fastrtps = fastrtps_libs.rosidl_dynamic_typesupport_fastrtps;
+    ros_libraries.rosidl_typesupport_fastrtps_c = fastrtps_libs.rosidl_typesupport_fastrtps_c;
+    ros_libraries.rosidl_typesupport_fastrtps_cpp = fastrtps_libs.rosidl_typesupport_fastrtps_cpp;
 
     ros_libraries.libstatistics_collector = libstatistics_collector.buildWithArgs(b, compile_args, .{
         .upstream = upstream_dependencies.libstatistics_collector,

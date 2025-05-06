@@ -9,9 +9,9 @@ same style of generators and depend largely on rosidl.
 ## TODO
 
 ### Missing ROS features
- - Action generation
- - Multi typesupport support, currently this only generates the introspection type support required
-   for cyclone
 
-https://github.com/ros2/rosidl/tree/jazzy
-https://github.com/ros2/rosidl_typesupport/tree/jazzy
+- Action generation
+- Multi typesupport support, currently this only generates the introspection type support required
+  for cyclone
+
+https://github.com/ros2/rosidl/tree/jazzy https://github.com/ros2/rosidl_typesupport/tree/jazzy

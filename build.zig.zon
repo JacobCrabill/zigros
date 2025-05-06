@@ -39,6 +39,14 @@
             .url = "https://github.com/ros2/rosidl_dynamic_typesupport/archive/tags/0.1.2.tar.gz", // Jazzy
             .hash = "N-V-__8AACcfBQB4CfJVLGoSsEFxn7aPytVw5gSRQDOqj7jB",
         },
+        .rosidl_dynamic_typesupport_fastrtps = .{
+            .url = "https://github.com/ros2/rosidl_dynamic_typesupport_fastrtps/archive/tags/0.1.0.tar.gz", // Jazzy
+            .hash = "N-V-__8AAFV6AwBYC6CDM5FhrfLh6S7tdRP8chMqNKyF0buM",
+        },
+        .rosidl_typesupport_fastrtps = .{
+            .url = "https://github.com/ros2/rosidl_typesupport_fastrtps/archive/tags/3.6.1.tar.gz",
+            .hash = "N-V-__8AAFIcBACU3YcMhtVohecLmBl9u4PG19W6dBBeWnw3",
+        },
         .rmw = .{
             .url = "https://github.com/ros2/rmw/archive/tags/7.3.1.tar.gz", // Jazzy
             .hash = "N-V-__8AABvfCQCZJfSMtgjeo8B7UyDaStd7cB6RpBgIfTYh",
@@ -66,6 +74,10 @@
         .rmw_cyclonedds = .{
             .url = "https://github.com/ros2/rmw_cyclonedds/archive/tags/2.2.2.tar.gz", // Jazzy
             .hash = "N-V-__8AABimBgDdEC4Fs38lnA5yi-L6SQr1LA9xEoTqHwtv",
+        },
+        .rmw_fastrtps = .{
+            .url = "https://github.com/ros2/rmw_fastrtps/archive/tags/8.4.2.tar.gz", // Jazzy
+            .hash = "N-V-__8AAJfGDwBuB8dw_dGNr54o2W69RmQ05Lc-BTdF68TM",
         },
         .libstatistics_collector = .{
             .url = "https://github.com/ros-tooling/libstatistics_collector/archive/tags/1.7.3.tar.gz", // Jazzy
@@ -108,6 +120,14 @@
         .class_loader = .{
             .url = "https://github.com/ros/class_loader/archive/8bad929bd8b2777b8d2b6eff7227b2c5f325b11d.tar.gz",
             .hash = "N-V-__8AAIy7AgCr5ZHlavhEo2ir9wqQZYJhGZUGs3xi5jNE",
+        },
+        .fastdds = .{
+            .url = "https://github.com/JacobCrabill/zig-Fast-DDS/archive/095861ab97638be01e5fa693b0c3f5b784599f04.tar.gz",
+            .hash = "zig_fastdds-2.14.4-8klu5g0-AADn4_pvN410-aluFUJcpUuIENT1WyciSBNa",
+        },
+        .fastcdr = .{
+            .url = "https://github.com/JacobCrabill/zig-Fast-CDR/archive/ef20d049e2f86dcf5dfe7616b066c6e738c43809.tar.gz",
+            .hash = "zig_fastcdr-2.3.0-5tEjoEAKAABOQ72Spj9w0-r52F6OAWD5WWtN82yNS9Cs",
         },
     },
     .paths = .{
