@@ -67,7 +67,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) *Compile {
             "src/validate_namespace.c",
             "src/validate_node_name.c",
         },
-        .flags = &.{"-fvisibility=hidden"},
+        //  .flags = &.{"-fvisibility=hidden"},
     });
 
     lib.installHeadersDirectory(

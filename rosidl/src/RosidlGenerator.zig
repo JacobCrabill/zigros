@@ -77,9 +77,9 @@ pub const Interface = struct {
         target.linkLibrary(self.interface_c);
         target.linkLibrary(self.typesupport_c);
         target.linkLibrary(self.typesupport_introspection_c);
-        target.installLibraryHeaders(self.interface_c);
-        target.installLibraryHeaders(self.typesupport_c);
-        target.installLibraryHeaders(self.typesupport_introspection_c);
+        // target.installLibraryHeaders(self.interface_c);
+        // target.installLibraryHeaders(self.typesupport_c);
+        // target.installLibraryHeaders(self.typesupport_introspection_c);
         if (self.include_dir) |dir| {
             target.addIncludePath(dir);
         }
@@ -92,8 +92,8 @@ pub const Interface = struct {
         target.addIncludePath(self.interface_cpp);
         target.linkLibrary(self.typesupport_cpp);
         target.linkLibrary(self.typesupport_introspection_cpp);
-        target.installLibraryHeaders(self.typesupport_cpp);
-        target.installLibraryHeaders(self.typesupport_introspection_cpp);
+        // target.installLibraryHeaders(self.typesupport_cpp);
+        // target.installLibraryHeaders(self.typesupport_introspection_cpp);
         if (self.include_dir) |dir| {
             target.addIncludePath(dir);
         }

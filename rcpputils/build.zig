@@ -51,8 +51,9 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) *Compile {
         },
         .flags = &.{
             "--std=c++17",
-            "-fvisibility=hidden",
-            "-fvisibility-inlines-hidden",
+            //"-fvisibility=hidden",
+            //"-fvisibility-inlines-hidden",
+            "-frtti",
         },
     });
 

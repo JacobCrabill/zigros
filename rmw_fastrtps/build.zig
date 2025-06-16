@@ -60,7 +60,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
     rosidl_typesupport_fastrtps_c.addCSourceFiles(.{
         .root = typesupport_fastrtps_upstream.path("rosidl_typesupport_fastrtps_c/src"),
         .files = &.{ "identifier.cpp", "wstring_conversion.cpp" },
-        .flags = &.{ "--std=c++17", "-Wall", "-Wextra", "-Wpedantic" },
+        .flags = &.{ "--std=c++17", "-Wall", "-Wextra", "-Wpedantic", "-frtti" },
     });
     rosidl_typesupport_fastrtps_c.addIncludePath(typesupport_fastrtps_upstream.path("rosidl_typesupport_fastrtps_c/include"));
     rosidl_typesupport_fastrtps_c.installHeadersDirectory(typesupport_fastrtps_upstream.path("rosidl_typesupport_fastrtps_c/include"), "", .{
@@ -81,7 +81,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
     rosidl_typesupport_fastrtps_cpp.addCSourceFiles(.{
         .root = typesupport_fastrtps_upstream.path("rosidl_typesupport_fastrtps_cpp/src"),
         .files = &.{ "identifier.cpp", "wstring_conversion.cpp" },
-        .flags = &.{ "--std=c++17", "-Wall", "-Wextra", "-Wpedantic" },
+        .flags = &.{ "--std=c++17", "-Wall", "-Wextra", "-Wpedantic", "-frtti" },
     });
     rosidl_typesupport_fastrtps_cpp.addIncludePath(typesupport_fastrtps_upstream.path("rosidl_typesupport_fastrtps_cpp/include"));
     rosidl_typesupport_fastrtps_cpp.installHeadersDirectory(typesupport_fastrtps_upstream.path("rosidl_typesupport_fastrtps_cpp/include"), "", .{
@@ -121,7 +121,11 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
             "src/identifier.cpp",
             "src/serialization_support.cpp",
         },
-        .flags = &.{"-fvisibility=hidden"},
+        .flags = &.{
+            "--std=c++17",
+            //"-fvisibility=hidden",
+            "-frtti",
+        },
     });
     rosidl_dynamic_typesupport_fastrtps.addIncludePath(dynamic_typesupport_fastrtps_upstream.path("include"));
     rosidl_dynamic_typesupport_fastrtps.installHeadersDirectory(dynamic_typesupport_fastrtps_upstream.path("include"), "", .{});
@@ -147,6 +151,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
             "-Wthread-safety",
             "-Wno-deprecated-declarations",
             "-Wno-unknown-pragmas",
+            "-frtti",
         },
     });
 
@@ -178,6 +183,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
             "-Wno-deprecated-declarations",
             "-Wno-switch-bool",
             "-Wno-unknown-pragmas",
+            "-frtti",
         },
     });
 

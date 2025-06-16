@@ -52,7 +52,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
             "src/logging_dir.c",
         },
         .flags = &.{
-            "-fvisibility=hidden",
+            //"-fvisibility=hidden",
         },
     });
 

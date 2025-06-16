@@ -21,7 +21,7 @@ pub fn buildWithArgs(b: *std.Build, args: zigros.CompileArgs) *Step.Compile {
     console_bridge.addCSourceFiles(.{
         .root = upstream.path("src"),
         .files = &.{"console.cpp"},
-        .flags = &.{ "--std=c++17", "-Wall", "-Wextra", "-Werror" },
+        .flags = &.{ "--std=c++17", "-frtti", "-Wall", "-Wextra", "-Werror" },
     });
 
     const console_bridge_lib = b.addLibrary(.{

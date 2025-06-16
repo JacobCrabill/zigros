@@ -51,6 +51,9 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) *Compile {
 
     zigros.linkDependencyStruct(lib, deps, .cpp);
 
+    // We only enable shared-memory support when using GNU libC (or at least, not MUSL)
+    const dds_has_shm: []const u8 = if (target.result.abi == .musl) "" else "-DDDS_HAS_SHM";
+
     lib.addIncludePath(upstream.path("rmw_cyclonedds/rmw_cyclonedds_cpp/src"));
     lib.addCSourceFiles(.{
         .root = upstream.path("rmw_cyclonedds_cpp/"),
@@ -70,11 +73,12 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) *Compile {
         .flags = &.{
             "-Wno-deprecated-declarations",
             "--std=c++17",
-            "-fvisibility=hidden",
-            "-fvisibility-inlines-hidden",
+            //"-fvisibility=hidden",
+            //"-fvisibility-inlines-hidden",
             // Note, this is needed because the desserialization does a pointer cast on a byte array to extract larger integers, which is technically missaligned pointer access and should be implemented differently
             "-fno-sanitize=alignment",
-            "-DDDS_HAS_SHM=1", // Must re-apply the compiler flags from cyclonedds! (Until we upgrade to the refactored version)
+            dds_has_shm, // Must re-apply the compiler flags from cyclonedds! (Until we upgrade to the refactored version)
+            "-frtti",
         },
     });
 

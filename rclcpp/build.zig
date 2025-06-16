@@ -297,8 +297,9 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
             "-DRCLCPP_BUILDING_LIBRARY",
             "--std=c++17",
             "-Wno-deprecated-declarations",
-            "-fvisibility=hidden",
-            "-fvisibility-inlines-hidden",
+            //"-fvisibility=hidden",
+            //"-fvisibility-inlines-hidden",
+            "-frtti",
         },
     });
     b.installArtifact(rclcpp);
@@ -339,6 +340,10 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
             "server_goal_handle.cpp",
             "types.cpp",
         },
+        .flags = &.{
+            "--std=c++17",
+            "-frtti",
+        },
     });
 
     b.installArtifact(rclcpp_action);
@@ -373,6 +378,10 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     rclcpp_components.addCSourceFiles(.{
         .root = upstream.path("rclcpp_components/src"),
         .files = &.{"component_manager.cpp"},
+        .flags = &.{
+            "--std=c++17",
+            "-frtti",
+        },
     });
 
     b.installArtifact(rclcpp_components);
@@ -413,6 +422,10 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
             "node_interfaces/lifecycle_node_interface.cpp",
             "state.cpp",
             "transition.cpp",
+        },
+        .flags = &.{
+            "--std=c++17",
+            "-frtti",
         },
     });
 

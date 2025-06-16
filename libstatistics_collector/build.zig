@@ -71,7 +71,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) *Compile {
             "libstatistics_collector/moving_average_statistics/types.cpp",
         },
         .flags = &.{
-            "-std=c++17",
+            "-std=c++17",                   "-frtti",
             "-Wno-deprecated-declarations",
             "-DLIBSTATISTICS_COLLECTOR_BUILDING_LIBRARY",
             // "-fvisibility=hidden",  // TODO visibility hidden breaks this package

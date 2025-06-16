@@ -105,7 +105,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
             time,
             "src/uint8_array.c",
         },
-        .flags = &.{"-fvisibility=hidden"},
+        //.flags = &.{"-fvisibility=hidden"},
     });
 
     // process.c assumes that program_invocation_name exists which is a gnu specific thing.
@@ -118,7 +118,10 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
         .files = &.{
             "src/process.c",
         },
-        .flags = &.{ "-D_GNU_SOURCE", "-fvisibility=hidden" },
+        .flags = &.{
+            "-D_GNU_SOURCE",
+            //"-fvisibility=hidden",
+        },
     });
 
     // Add the parent directory to be sure that the file structuree is captured

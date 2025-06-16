@@ -18,6 +18,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) *Compile {
         .optimize = args.optimize,
         .link_libc = true,
         .link_libcpp = true,
+        .pic = true,
     });
 
     class_loader.addIncludePath(upstream.path("include"));
@@ -29,7 +30,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) *Compile {
             "meta_object.cpp",
             "multi_library_class_loader.cpp",
         },
-        .flags = &.{ "--std=c++17", "-Wall", "-Werror", "-Wpedantic" },
+        .flags = &.{ "--std=c++17", "-frtti", "-Wall", "-Werror", "-Wpedantic" },
     });
 
     const class_loader_lib = b.addLibrary(.{

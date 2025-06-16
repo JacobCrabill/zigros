@@ -397,6 +397,7 @@ pub fn CodeGenerator(
                                     "-fvisibility-inlines-hidden",
                                 } else &.{
                                     "--std=c++17",
+                                    "-frtti",
                                 },
                             });
                             self.artifact.linkLibCpp();
