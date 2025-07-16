@@ -98,7 +98,7 @@ pub fn main() !u8 {
             try pythonpath_writer.writeAll(python_path);
             try pythonpath_writer.writeAll(":");
         }
-        // remove trailing :
+        // remove trailing ':'
         pythonpath_string.shrinkRetainingCapacity(pythonpath_string.items.len - 1);
     }
     var env = std.process.EnvMap.init(arena.allocator());

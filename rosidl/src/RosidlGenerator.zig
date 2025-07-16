@@ -272,7 +272,7 @@ pub fn create(
     // `ament_index_register_resource("rosidl_typesupport_c`) on github in ros to get a list
     // For now we only support the standard dynamic typesupport_introspection versions
     to_return.typesupport_c.generator.addArg(
-        "-A--typesupports rosidl_typesupport_introspection_c",
+        "-A--typesupports rosidl_typesupport_introspection_c", // rosidl_typesupport_fastrtps_c
     );
 
     to_return.typesupport_cpp = RosidlTypesupportCpp.create(
@@ -301,7 +301,7 @@ pub fn create(
     // `ament_index_register_resource("rosidl_typesupport_c`) on github in ros to get a list
     // For now we only support the standard dynamic typesupport_introspection versions
     to_return.typesupport_cpp.generator.addArg(
-        "-A--typesupports rosidl_typesupport_introspection_cpp",
+        "-A--typesupports rosidl_typesupport_introspection_cpp", // rosidl_typesupport_fastrtps_cpp
     );
 
     to_return.artifacts = .{

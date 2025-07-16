@@ -55,7 +55,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     zigros.linkDependencyStruct(rmw_dds_common, deps, .cpp);
 
     // Generate interfaces that the rmw_dds_common artifact depensd on
-    var interface_generator = RosidlGenerator.create(
+    var rmw_dds_common_interfaces = RosidlGenerator.create(
         b,
         "rmw_dds_common",
         deps.rosidl_generator,
@@ -63,7 +63,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
         args,
     );
 
-    interface_generator.addInterfaces(upstream.path("rmw_dds_common"), &.{
+    rmw_dds_common_interfaces.addInterfaces(upstream.path("rmw_dds_common"), &.{
         "msg/Gid.msg",
         "msg/NodeEntitiesInfo.msg",
         "msg/ParticipantEntitiesInfo.msg",
@@ -72,7 +72,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     rmw_dds_common.linkLibrary(deps.rosidl_runtime_c);
     // rmw_dds_common.installLibraryHeaders(deps.rosidl_runtime_c);
 
-    interface_generator.artifacts.link(rmw_dds_common);
+    rmw_dds_common_interfaces.artifacts.link(rmw_dds_common);
 
     rmw_dds_common.addIncludePath(upstream.path("rmw_dds_common/include"));
 
@@ -101,10 +101,10 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
         .{ .include_extensions = &.{ ".hpp", ".h" } },
     );
     b.installArtifact(rmw_dds_common);
-    interface_generator.installArtifacts();
+    rmw_dds_common_interfaces.installArtifacts();
 
     return .{
-        .rmw_dds_common_interface = interface_generator.artifacts,
+        .rmw_dds_common_interface = rmw_dds_common_interfaces.artifacts,
         .rmw_dds_common = rmw_dds_common,
     };
 }

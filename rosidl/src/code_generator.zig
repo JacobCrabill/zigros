@@ -1,11 +1,11 @@
 const std = @import("std");
 const builtin = @import("builtin");
 
-// The various typesupport generators, like much of rosidl uses an arguments file instead of direct
+// The various typesupport generators, like much of rosidl, use an arguments file instead of direct
 // command line arguments.  This program wraps that by taking all arguments as command line
 // arguments and writing to an arguments file automatically. This both writes the args file and
 // calls the provided generator in one program. All arguments are prefixed to play nice with
-// Zigs "addPrefixed" class of functions on the run step.
+// Zig's "addPrefixed" class of functions on the run step.
 //
 //  -X the specific generator to run
 //  -P additional python paths to include

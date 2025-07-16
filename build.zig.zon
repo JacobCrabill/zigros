@@ -34,6 +34,7 @@
         .rosidl_typesupport = .{
             .url = "https://github.com/ros2/rosidl_typesupport/archive/tags/3.2.2.tar.gz", // Jazzy
             .hash = "N-V-__8AAC7sAwAhp8j24Ym-mlRXjmhBdjJAYFw1r1v5B-91",
+            //.path = "../rosidl_typesupport",
         },
         .rosidl_dynamic_typesupport = .{
             .url = "https://github.com/ros2/rosidl_dynamic_typesupport/archive/tags/0.1.2.tar.gz", // Jazzy
@@ -78,6 +79,26 @@
         .rmw_fastrtps = .{
             .url = "https://github.com/ros2/rmw_fastrtps/archive/tags/8.4.2.tar.gz", // Jazzy
             .hash = "N-V-__8AAJfGDwBuB8dw_dGNr54o2W69RmQ05Lc-BTdF68TM",
+            //.path = "../rmw_fastrtps",
+        },
+        .rmw_microxrcedds = .{
+            // v5.0.1+
+            .url = "https://github.com/micro-ROS/rmw_microxrcedds/archive/a698d4e9fc7f6780c44cc900a279d3f2d0c90856.tar.gz",
+            .hash = "N-V-__8AAGRRCAAVivtplrHq2b3GKjl-SNstnTu_A8rZ_y_H",
+        },
+        .rosidl_typesupport_microxrcedds = .{
+            // Jazzy
+            .url = "https://github.com/micro-ROS/rosidl_typesupport_microxrcedds/archive/5307e89ea96a58648d55a2985ec391ac66125bee.tar.gz",
+            .hash = "N-V-__8AAE5eAwADWOAp4ZJRGBSxOtEgfmxsBbzQ7Va7A7HQ",
+        },
+        .microcdr = .{
+            .url = "https://github.com/JacobCrabill/zig-Micro-CDR/archive/2f9de9935faa2ae42586c3a03f5b8131ac327ac0.tar.gz",
+            .hash = "microcdr-2.0.1-8sp6bosKAACsIO_8DJnpcrqE7FeEHQK04mgQZ59Edb28",
+        },
+        .uxrce_client = .{
+            // v3.0.0
+            .url = "https://github.com/JacobCrabill/zig-Micro-XRCE-DDS-Client/archive/e93abb501a961de891fabaee4ef9ea952ebd9ad6.tar.gz",
+            .hash = "Micro_XRCE_DDS_Client-3.0.0-i47TMwMaAAD2X3-6TyHAzaTY1P1DGWTaDWTa5dldAeaD",
         },
         .libstatistics_collector = .{
             .url = "https://github.com/ros-tooling/libstatistics_collector/archive/tags/1.7.3.tar.gz", // Jazzy
@@ -102,8 +123,8 @@
             .hash = "N-V-__8AAJatCADp2QPDFq8wzBG--OTM2oVMdj3kk5FLvnk0",
         },
         .cyclonedds = .{
-            .url = "https://github.com/JacobCrabill/zig-cyclonedds/archive/b1a79e82c070916d3a82dc04334c5f7eb85594d8.tar.gz",
-            .hash = "cyclonedds-0.10.5-VJFfyxw8AAA5SnXCaQs5jlmG2X-ktEvIvVqow-P6uh06",
+            .url = "https://github.com/JacobCrabill/zig-cyclonedds/archive/164d4d74f8d5f73246e4bfb4ff792502f233f2e5.tar.gz",
+            .hash = "cyclonedds-0.10.5-VJFfyyhAAAA3PuJOcm4lE4WwvX5RzlBAml6q8fAYSkyy",
         },
         .yaml = .{
             .url = "https://github.com/zig-robotics/libyaml/archive/tags/0.2.5.tar.gz",
@@ -122,8 +143,8 @@
             .hash = "N-V-__8AAIy7AgCr5ZHlavhEo2ir9wqQZYJhGZUGs3xi5jNE",
         },
         .fastdds = .{
-            .url = "https://github.com/JacobCrabill/zig-Fast-DDS/archive/095861ab97638be01e5fa693b0c3f5b784599f04.tar.gz",
-            .hash = "zig_fastdds-2.14.4-8klu5g0-AADn4_pvN410-aluFUJcpUuIENT1WyciSBNa",
+            .url = "https://github.com/JacobCrabill/zig-Fast-DDS/archive/b210f38890c5d930dfaa532a6617980ab4481e6a.tar.gz",
+            .hash = "zig_fastdds-2.14.4-8klu5l9EAACFX5Tz0ZJv7eXTBKUveipsLYLLg7azprVo",
         },
         .fastcdr = .{
             .url = "https://github.com/JacobCrabill/zig-Fast-CDR/archive/ef20d049e2f86dcf5dfe7616b066c6e738c43809.tar.gz",
@@ -146,6 +167,8 @@
         "rmw/build.zig",
         "rmw_cyclonedds/build.zig",
         "rmw_dds_common/build.zig",
+        "rmw_fastrtps/build.zig",
+        "rmw_microxrcedds/build.zig",
         "ros2_tracing/build.zig",
         "rosidl/build.zig",
         "rosidl/src/adapter_generator.zig",
