@@ -1,26 +1,37 @@
 const std = @import("std");
 const zigros = @import("zigros/zigros.zig");
 
-const rcutils = @import("rcutils/build.zig");
-const rcpputils = @import("rcpputils/build.zig");
-const rosidl = @import("rosidl/build.zig");
-const rmw = @import("rmw/build.zig");
-const rmw_dds_common = @import("rmw_dds_common/build.zig");
-const rcl_logging = @import("rcl_logging/build.zig");
-const rcl_interfaces = @import("rcl_interfaces/build.zig");
-const common_interfaces = @import("common_interfaces/build.zig");
-const ros2_tracing = @import("ros2_tracing/build.zig");
-const rcl = @import("rcl/build.zig");
-const rmw_cyclonedds = @import("rmw_cyclonedds/build.zig");
-const rmw_fastrtps = @import("rmw_fastrtps/build.zig");
-// const rmw_uxrce = @import("rmw_microxrcedds/build.zig");
-const libstatistics_collector = @import("libstatistics_collector/build.zig");
-const ament_index = @import("ament_index/build.zig");
-const rclcpp = @import("rclcpp/build.zig");
-const console_bridge = @import("console_bridge/build.zig");
-const class_loader = @import("class_loader/build.zig");
+const ament_index = @import("ros_deps/ament_index/build.zig");
+const geographic = @import("ros_deps/geographic/build.zig");
+const pluginlib = @import("ros_deps/pluginlib/build.zig");
+const tinyxml2 = @import("ros_deps/tinyxml2/build.zig");
 
-pub const RosidlGenerator = @import("rosidl/src/RosidlGenerator.zig");
+const libstatistics_collector = @import("ros_core/libstatistics_collector/build.zig");
+const rcl = @import("ros_core/rcl/build.zig");
+const rcl_logging = @import("ros_core/rcl_logging/build.zig");
+const rcl_interfaces = @import("ros_core/rcl_interfaces/build.zig");
+const rclcpp = @import("ros_core/rclcpp/build.zig");
+const rcpputils = @import("ros_core/rcpputils/build.zig");
+const rcutils = @import("ros_core/rcutils/build.zig");
+const ros2_tracing = @import("ros_core/ros2_tracing/build.zig");
+const rosidl = @import("ros_core/rosidl/build.zig");
+
+const rmw = @import("ros_rmw/rmw/build.zig");
+const rmw_dds_common = @import("ros_rmw/rmw_dds_common/build.zig");
+const rmw_cyclonedds = @import("ros_rmw/rmw_cyclonedds/build.zig");
+const rmw_fastrtps = @import("ros_rmw/rmw_fastrtps/build.zig");
+// const rmw_uxrce = @import("ros_rmw/rmw_microxrcedds/build.zig");
+
+const class_loader = @import("ros_deps/class_loader/build.zig");
+const console_bridge = @import("ros_deps/console_bridge/build.zig");
+const camera_info = @import("ros_extra/camera_info_manager/build.zig");
+const common_interfaces = @import("interfaces/common_interfaces/build.zig");
+const dynmsg = @import("ros_extra/dynmsg/build.zig");
+const image_transport = @import("ros_extra/image_transport/build.zig");
+const message_filters = @import("ros_extra/message_filters/build.zig");
+const tf2 = @import("ros_extra/tf2/build.zig");
+
+pub const RosidlGenerator = @import("ros_core/rosidl/src/RosidlGenerator.zig");
 
 const LazyPath = std.Build.LazyPath;
 const Dependency = std.Build.Dependency;
@@ -29,6 +40,7 @@ const Module = std.Build.Module;
 const WriteFile = std.Build.Step.WriteFile;
 
 const UpstreamDependencies = struct {
+    eigen: *Dependency,
     rcutils: *Dependency,
     rcpputils: *Dependency,
     rosidl: *Dependency,
@@ -86,8 +98,21 @@ pub const RosLibraries = struct {
     tracetools: LazyPath,
     rcl_yaml_param_parser: *Compile,
     yaml: *Compile, // External
-    console_bridge: *Compile, // External
-    class_loader: *Compile, // External
+    yaml_cpp: *Compile, // External
+    geographic: *Compile,
+    pluginlib: *Compile,
+    tinyxml2: *Compile,
+    camera_calibration_parsers: *Compile,
+    camera_info_manager: *Compile,
+    class_loader: *Compile,
+    console_bridge: *Compile,
+    dynmsg: *Compile,
+    image_transport: *Compile,
+    message_filters: *Compile,
+    tf2: *Compile,
+    tf2_msgs: RosidlGenerator.Interface,
+    tf2_ros: *Compile,
+    tf2_eigen: *Compile,
     rcl: *Compile,
     rcl_action: *Compile,
     rcl_lifecycle: *Compile,
@@ -98,9 +123,9 @@ pub const RosLibraries = struct {
     // rmw_uxrce: *Compile,
     // microcdr: *Compile, // External
     // uxrce_client: *Compile, // External
-    cyclonedds: *Compile, // External
-    fastdds: *Compile, // External
-    fastcdr: *Compile, // External
+    cyclonedds: *Compile,
+    fastdds: *Compile,
+    fastcdr: *Compile,
     libstatistics_collector: *Compile,
     ament_index_cpp: *Compile,
     rclcpp: *Compile,
@@ -240,8 +265,19 @@ pub const ZigRos = struct {
                 .tracetools = dep.namedWriteFiles("tracetools").getDirectory(),
                 .rcl_yaml_param_parser = dep.artifact("rcl_yaml_param_parser"),
                 .yaml = dep.artifact("yaml"), // External
-                .console_bridge = dep.artifact("console_bridge"), // External
-                .class_loader = dep.artifact("class_loader"), // External
+                .yaml_cpp = dep.artifact("yaml_cpp"), // External
+                .console_bridge = dep.artifact("console_bridge"),
+                .class_loader = dep.artifact("class_loader"),
+                .geographic = dep.artifact("geographic"),
+                .pluginlib = dep.artifact("pluginlib"),
+                .tinyxml2 = dep.artifact("tinyxml2"),
+                .message_filters = dep.artifact("message_filters"),
+                .camera_calibration_parsers = dep.artifact("camera_calibration_parsers"),
+                .camera_info_manager = dep.artifact("camera_info_manager"),
+                .tf2 = dep.artifact("tf2"),
+                .tf2_ros = dep.artifact("tf2_ros"),
+                .tf2_msgs = dep.artifact("tf2_msgs"),
+                .tf2_eigen = dep.artifact("tf2_eigen"),
                 .rcl = dep.artifact("rcl"),
                 .rcl_action = dep.artifact("rcl_action"),
                 .rcl_lifecycle = dep.artifact("rcl_lifecycle"),
@@ -358,6 +394,12 @@ pub const ZigRos = struct {
         //step.installLibraryHeaders(self.ros_libraries.rclcpp_components);
         //step.installLibraryHeaders(self.ros_libraries.rclcpp_lifecycle);
         //step.installLibraryHeaders(self.ros_libraries.rcpputils);
+    }
+
+    pub fn linkTf2(self: ZigRos, step: *Compile) void {
+        step.root_module.linkLibrary(self.ros_libraries.tf2);
+        step.root_module.linkLibrary(self.ros_libraries.tf2_ros);
+        self.ros_libraries.tf2_msgs.linkCpp(step);
     }
 
     pub fn linkRmwCycloneDds(self: ZigRos, step: *Compile) void {
@@ -480,6 +522,7 @@ pub fn build(b: *std.Build) void {
     // All upstream dependencies are direct ROS packages that do not contain zig build files
     // As such, we don't need to pass any arguments
     const upstream_dependencies = UpstreamDependencies{
+        .eigen = b.dependency("eigen", .{}),
         .rcutils = b.dependency("rcutils", .{}),
         .rcpputils = b.dependency("rcpputils", .{}),
         .rosidl = b.dependency("rosidl", .{}),
@@ -538,6 +581,8 @@ pub fn build(b: *std.Build) void {
         .{ .python = python, .empy = python_libraries.empy },
     );
 
+    ros_libraries.ament_index_cpp = ament_index.buildWithArgs(b, compile_args);
+
     ros_libraries.rcutils = rcutils_artifacts.rcutils;
     python_libraries.rcutils = rcutils_artifacts.rcutils_py.getDirectory();
 
@@ -546,13 +591,6 @@ pub fn build(b: *std.Build) void {
         compile_args,
         .{ .upstream = upstream_dependencies.rcpputils, .rcutils = ros_libraries.rcutils },
     );
-
-    ros_libraries.console_bridge = console_bridge.buildWithArgs(b, compile_args);
-    ros_libraries.class_loader = class_loader.buildWithArgs(b, compile_args, .{
-        .console_bridge = ros_libraries.console_bridge,
-        .rcutils = ros_libraries.rcutils,
-        .rcpputils = ros_libraries.rcpputils,
-    });
 
     const rosidl_artifacts = rosidl.buildWithArgs(b, compile_args, .{
         .rosidl_upstream = b.dependency("rosidl", .{}),
@@ -707,8 +745,10 @@ pub fn build(b: *std.Build) void {
     ros_libraries.visualization_msgs = common_interfaces_artifacts.visualization_msgs;
 
     ros_libraries.yaml = b.dependency("yaml", compile_args).artifact("yaml");
-    // re export yaml so we can grab it directly from the zigros dependency later
+    ros_libraries.yaml_cpp = b.dependency("yaml_cpp", compile_args).artifact("yaml-cpp");
+    // re-install libs so we can grab it directly from the zigros dependency later
     b.installArtifact(ros_libraries.yaml);
+    b.installArtifact(ros_libraries.yaml_cpp);
 
     const rcl_artifacts = rcl.buildWithArgs(
         b,
@@ -739,6 +779,31 @@ pub fn build(b: *std.Build) void {
     ros_libraries.rcl = rcl_artifacts.rcl;
     ros_libraries.rcl_action = rcl_artifacts.rcl_action;
     ros_libraries.rcl_lifecycle = rcl_artifacts.rcl_lifecycle;
+
+    ros_libraries.tinyxml2 = tinyxml2.buildWithArgs(b, compile_args);
+
+    ros_libraries.console_bridge = console_bridge.buildWithArgs(b, compile_args);
+    ros_libraries.class_loader = class_loader.buildWithArgs(b, compile_args, .{
+        .console_bridge = ros_libraries.console_bridge,
+        .rcutils = ros_libraries.rcutils,
+        .rcpputils = ros_libraries.rcpputils,
+    });
+
+    ros_libraries.pluginlib = pluginlib.buildWithArgs(b, .{
+        .ament_index_cpp = ros_libraries.ament_index_cpp,
+        .class_loader_lib = ros_libraries.class_loader,
+        .tinyxml2_lib = ros_libraries.tinyxml2,
+    }, compile_args);
+    ros_libraries.message_filters = message_filters.buildWithArgs(b, .{ .std_msgs = ros_libraries.std_msgs }, compile_args);
+    ros_libraries.dynmsg = dynmsg.buildWithArgs(b, .{
+        .yaml_cpp = ros_libraries.yaml_cpp,
+        .rcutils = ros_libraries.rcutils,
+        .rosidl_runtime_c = ros_libraries.rosidl_runtime_c,
+        .rosidl_typesupport_introspection_c = ros_libraries.rosidl_typesupport_introspection_c,
+        .rosidl_typesupport_introspection_cpp = ros_libraries.rosidl_typesupport_introspection_cpp,
+        .rosidl_runtime_cpp = ros_libraries.rosidl_runtime_cpp,
+        .rosidl_typesupport_interface = ros_libraries.rosidl_typesupport_interface,
+    }, compile_args);
 
     // Currently, due to MUSL libC limitations around pthreads,
     // Iceoryx shared-memory is only supported for GNU libC
@@ -856,8 +921,6 @@ pub fn build(b: *std.Build) void {
         .statistics_msgs = ros_libraries.statistics_msgs,
     });
 
-    ros_libraries.ament_index_cpp = ament_index.buildWithArgs(b, compile_args);
-
     const rclcpp_artifacts = rclcpp.buildWithArgs(b, compile_args, .{
         .upstream = upstream_dependencies.rclcpp,
         .class_loader = ros_libraries.class_loader,
@@ -897,4 +960,125 @@ pub fn build(b: *std.Build) void {
     ros_libraries.rclcpp_action = rclcpp_artifacts.rclcpp_action;
     ros_libraries.rclcpp_components = rclcpp_artifacts.rclcpp_components;
     ros_libraries.rclcpp_lifecycle = rclcpp_artifacts.rclcpp_lifecycle;
+
+    ros_libraries.tf2 = tf2.tf2.buildWithArgs(b, .{
+        .rcutils = ros_libraries.rcutils,
+        .rosidl_runtime_c = ros_libraries.rosidl_runtime_c,
+        .rosidl_runtime_cpp = ros_libraries.rosidl_runtime_cpp,
+        .rosidl_typesupport_interface = ros_libraries.rosidl_typesupport_interface,
+        .builtin_interfaces = ros_libraries.builtin_interfaces,
+        .std_msgs = ros_libraries.std_msgs,
+        .geometry_msgs = ros_libraries.geometry_msgs,
+    }, compile_args);
+
+    ros_libraries.tf2_msgs = tf2.tf2_msgs.getInterface(b, .{
+        .rosidl_generator = rosidl_generator_build_deps,
+    }, .{
+        .rosidl_generator = rosidl_generator_deps,
+        .action_msgs = ros_libraries.action_msgs,
+        .builtin_interfaces = rcl_interfaces_artifacts.builtin_interfaces,
+        .geometry_msgs = ros_libraries.geometry_msgs,
+        .service_msgs = rcl_interfaces_artifacts.service_msgs,
+        .std_msgs = ros_libraries.std_msgs,
+        .unique_identifier_msgs = ros_libraries.unique_identifier_msgs,
+    }, compile_args);
+
+    // TODO: Separate out the static_transform_publisher - it should use the higher-level APIs
+    // It's a full ROS node, so building it should live elsewhere
+    ros_libraries.tf2_ros = tf2.tf2_ros.buildWithArgs(b, .{
+        // ---- Libs
+        .class_loader = ros_libraries.class_loader,
+        .console_bridge = ros_libraries.console_bridge,
+        .message_filters_lib = ros_libraries.message_filters,
+        .rclcpp = ros_libraries.rclcpp,
+        .rclcpp_action = ros_libraries.rclcpp_action,
+        .rosidl_runtime_c = ros_libraries.rosidl_runtime_c,
+        .tf2_lib = ros_libraries.tf2,
+        // ---- Include Paths
+        .rosidl_runtime_cpp = ros_libraries.rosidl_runtime_cpp,
+        .rosidl_typesupport_interface = ros_libraries.rosidl_typesupport_interface,
+        .tracetools = ros_libraries.tracetools,
+        // ---- Interfaces
+        .action_msgs = ros_libraries.action_msgs,
+        .builtin_interfaces = rcl_interfaces_artifacts.builtin_interfaces,
+        .geometry_msgs = ros_libraries.geometry_msgs,
+        .rcl_interfaces = ros_libraries.rcl_interfaces,
+        .service_msgs = rcl_interfaces_artifacts.service_msgs,
+        .statistics_msgs = rcl_interfaces_artifacts.statistics_msgs,
+        .std_msgs = ros_libraries.std_msgs,
+        .tf2_msgs = ros_libraries.tf2_msgs,
+        .type_description_interfaces = ros_libraries.type_description_interfaces,
+        .unique_identifier_msgs = ros_libraries.unique_identifier_msgs,
+    }, compile_args);
+
+    ros_libraries.tf2_eigen = tf2.tf2_eigen.buildWithArgs(b, .{
+        .eigen = upstream_dependencies.eigen,
+        // ---- Libs
+        .class_loader = ros_libraries.class_loader,
+        .console_bridge = ros_libraries.console_bridge,
+        .message_filters_lib = ros_libraries.message_filters,
+        .rclcpp = ros_libraries.rclcpp,
+        .rclcpp_action = ros_libraries.rclcpp_action,
+        .rosidl_runtime_c = ros_libraries.rosidl_runtime_c,
+        .tf2 = ros_libraries.tf2,
+        .tf2_ros = ros_libraries.tf2_ros,
+        // ---- Include Paths
+        .rosidl_runtime_cpp = ros_libraries.rosidl_runtime_cpp,
+        .rosidl_typesupport_interface = ros_libraries.rosidl_typesupport_interface,
+        .tracetools = ros_libraries.tracetools,
+        // ---- Interfaces
+        .action_msgs = ros_libraries.action_msgs,
+        .builtin_interfaces = rcl_interfaces_artifacts.builtin_interfaces,
+        .geometry_msgs = ros_libraries.geometry_msgs,
+        .rcl_interfaces = ros_libraries.rcl_interfaces,
+        .service_msgs = rcl_interfaces_artifacts.service_msgs,
+        .statistics_msgs = rcl_interfaces_artifacts.statistics_msgs,
+        .std_msgs = ros_libraries.std_msgs,
+        .tf2_msgs = ros_libraries.tf2_msgs,
+        .type_description_interfaces = ros_libraries.type_description_interfaces,
+        .unique_identifier_msgs = ros_libraries.unique_identifier_msgs,
+    }, compile_args);
+
+    ros_libraries.geographic = geographic.buildWithArgs(b, compile_args);
+
+    // TODO: image_transport needs OpenCV
+    // ros_libraries.image_transport = image_transport.buildWithArgs(b, .{
+    //     .class_loader_lib = ros_libraries.class_loader,
+    //     .message_filters_lib = ros_libraries.message_filters,
+    //     .pluginlib_lib = ros_libraries.pluginlib,
+    //     .rclcpp = ros_libraries.rclcpp,
+    //     .rclcpp_components = ros_libraries.rclcpp_components,
+    //     .std_msgs = ros_libraries.std_msgs,
+    //     .sensor_msgs = ros_libraries.sensor_msgs,
+    // }, compile_args);
+
+    const camera_info_libs = camera_info.buildWithArgs(b, .{
+        // ---- Libs
+        .class_loader = ros_libraries.class_loader,
+        .console_bridge = ros_libraries.console_bridge,
+        .message_filters_lib = ros_libraries.message_filters,
+        .rclcpp = ros_libraries.rclcpp,
+        .rclcpp_action = ros_libraries.rclcpp_action,
+        .rclcpp_lifecycle = ros_libraries.rclcpp_lifecycle,
+        .rosidl_runtime_c = ros_libraries.rosidl_runtime_c,
+        .yaml_cpp_lib = ros_libraries.yaml_cpp,
+        // ---- Include Paths
+        .rosidl_runtime_cpp = ros_libraries.rosidl_runtime_cpp,
+        .rosidl_typesupport_interface = ros_libraries.rosidl_typesupport_interface,
+        .tracetools = ros_libraries.tracetools,
+        // ---- Interfaces
+        .action_msgs = ros_libraries.action_msgs,
+        .builtin_interfaces = rcl_interfaces_artifacts.builtin_interfaces,
+        .geometry_msgs = ros_libraries.geometry_msgs,
+        .lifecycle_msgs = ros_libraries.lifecycle_msgs,
+        .rcl_interfaces = ros_libraries.rcl_interfaces,
+        .sensor_msgs = ros_libraries.sensor_msgs,
+        .service_msgs = rcl_interfaces_artifacts.service_msgs,
+        .statistics_msgs = rcl_interfaces_artifacts.statistics_msgs,
+        .std_msgs = ros_libraries.std_msgs,
+        .type_description_interfaces = ros_libraries.type_description_interfaces,
+        .unique_identifier_msgs = ros_libraries.unique_identifier_msgs,
+    }, compile_args);
+    ros_libraries.camera_calibration_parsers = camera_info_libs.camera_calibration_parsers;
+    ros_libraries.camera_info_manager = camera_info_libs.camera_info_manager;
 }

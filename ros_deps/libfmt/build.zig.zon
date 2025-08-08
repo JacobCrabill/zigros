@@ -1,0 +1,16 @@
+.{
+    .name = .zig_libfmt,
+    .version = "11.1.4",
+    .fingerprint = 0x4cc888ec6e15ec74,
+    .minimum_zig_version = "0.14.0",
+    .dependencies = .{
+        .libfmt = .{
+            .url = "https://github.com/fmtlib/fmt/archive/refs/tags/11.1.4.tar.gz",
+            .hash = "N-V-__8AADG3LQBHbWIIgR-jy8EFk7vAgYsk0qJCm7JL_Pax",
+        },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+    },
+}

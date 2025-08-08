@@ -4,6 +4,7 @@
     .fingerprint = 0x55b4be52404fcf06, // Changing this has security and trust implications.
     .minimum_zig_version = "0.14.0",
     .dependencies = .{
+        // ---------------- Build-Time dependencies ----------------
         .python = .{
             .lazy = true,
             .url = "https://github.com/zig-robotics/cpython/archive/tags/3.11.5-2.tar.gz",
@@ -19,6 +20,53 @@
             .url = "https://github.com/lark-parser/lark/archive/tags/1.2.2.tar.gz",
             .hash = "N-V-__8AAFsNEgC0RRBIj_wwWriBm_4bF2YAEC3mY0O2j5Yi",
         },
+
+        // ---------------- Misc. ROS Dependencies: Raw C/C++ ----------------
+        .ament_index = .{
+            .url = "https://github.com/ament/ament_index/archive/tags/1.8.1.tar.gz", // Jazzy
+            .hash = "N-V-__8AABkAAgBFOfBKsjyttg1QjSuuF8HKeeR3Y4Up-F3x",
+        },
+        .eigen = .{
+            .url = "https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz",
+            .hash = "N-V-__8AABPI6wAbBLaww8cKO-HchZ0ft-BxUOEOyQtTSccD",
+        },
+        .fmt = .{
+            .path = "./third_party/libfmt",
+        },
+        .geographic = .{
+            // Version 2.5.0
+            .url = "https://github.com/geographiclib/geographiclib/archive/b0719910da478da8e8885f52a580ac3a754a4b65.tar.gz",
+            .hash = "N-V-__8AAN4fRQDZnncmIGZl3PdWfcz_wRUd3GpFqJJfY0Fa",
+        },
+        .gtest = .{
+            .url = "https://github.com/google/googletest/archive/refs/tags/v1.15.2.tar.gz",
+            .hash = "N-V-__8AAMpEPQABCTtXlOz1pbU4h2IsddYzrysMNAKiZs5F",
+        },
+        .pluginlib = .{
+            .url = "https://github.com/ros/pluginlib/archive/743972e88335aa6181ad694f7fb37814ed66e8d6.tar.gz",
+            .hash = "N-V-__8AAH_dAQB6MjuOTQ5NuCq3arai6vgdQKM-eF4fhY-H",
+        },
+        .spdlog = .{
+            .url = "https://github.com/gabime/spdlog/archive/tags/v1.14.1.tar.gz",
+            .hash = "N-V-__8AAJSgEQBm_CX16IKfCtcWMyIFbucHpA9_ojS59TbP",
+        },
+        .tinyxml2 = .{
+            .url = "https://github.com/leethomason/tinyxml2/archive/9148bdf719e997d1f474be6bcc7943881046dba1.tar.gz",
+            .hash = "N-V-__8AAGS_LgBD3O4RZBb_HAXQ7KEXIT_SUnnic-8wa4tD",
+        },
+
+        // ---------------- Misc. ROS Dependencies: Zig-Built ----------------
+        .yaml = .{
+            .url = "https://github.com/zig-robotics/libyaml/archive/tags/0.2.5.tar.gz",
+            .hash = "yaml-0.2.5--LGJNH0IAAD6ezzyKSkd6ZY7dgS593rcMWMPsJOYdE0v",
+        },
+        .yaml_cpp = .{
+            .url = "https://github.com/JacobCrabill/zig-yaml-cpp/archive/13114e2b4c87313339154fd43fa9f31d3e3329ac.tar.gz",
+            .hash = "zig_yaml_cpp-0.2.0-BiTzHpMTAAAxZWJUWUBxxsqP6ezWFCq71rvRjDKce6WG",
+        },
+
+        // ---------------- Core ROS Libraries ----------------
+
         .rcutils = .{
             .url = "https://github.com/ros2/rcutils/archive/tags/6.7.1.tar.gz", // Jazzy
             .hash = "N-V-__8AAOqPDQCP7E4N6LwRxUvQSKSZHzshqQi4Usv939E-",
@@ -72,41 +120,9 @@
             .url = "https://github.com/ros2/rcl/archive/tags/9.2.3.tar.gz", // Jazzy
             .hash = "N-V-__8AAFn8KwCIR57mH59i2JCTbI_jEXtq-zNaqrkpFmYo",
         },
-        .rmw_cyclonedds = .{
-            .url = "https://github.com/ros2/rmw_cyclonedds/archive/tags/2.2.2.tar.gz", // Jazzy
-            .hash = "N-V-__8AABimBgDdEC4Fs38lnA5yi-L6SQr1LA9xEoTqHwtv",
-        },
-        .rmw_fastrtps = .{
-            .url = "https://github.com/ros2/rmw_fastrtps/archive/tags/8.4.2.tar.gz", // Jazzy
-            .hash = "N-V-__8AAJfGDwBuB8dw_dGNr54o2W69RmQ05Lc-BTdF68TM",
-            //.path = "../rmw_fastrtps",
-        },
-        .rmw_microxrcedds = .{
-            // v5.0.1+
-            .url = "https://github.com/micro-ROS/rmw_microxrcedds/archive/a698d4e9fc7f6780c44cc900a279d3f2d0c90856.tar.gz",
-            .hash = "N-V-__8AAGRRCAAVivtplrHq2b3GKjl-SNstnTu_A8rZ_y_H",
-        },
-        .rosidl_typesupport_microxrcedds = .{
-            // Jazzy
-            .url = "https://github.com/micro-ROS/rosidl_typesupport_microxrcedds/archive/5307e89ea96a58648d55a2985ec391ac66125bee.tar.gz",
-            .hash = "N-V-__8AAE5eAwADWOAp4ZJRGBSxOtEgfmxsBbzQ7Va7A7HQ",
-        },
-        .microcdr = .{
-            .url = "https://github.com/JacobCrabill/zig-Micro-CDR/archive/2f9de9935faa2ae42586c3a03f5b8131ac327ac0.tar.gz",
-            .hash = "microcdr-2.0.1-8sp6bosKAACsIO_8DJnpcrqE7FeEHQK04mgQZ59Edb28",
-        },
-        .uxrce_client = .{
-            // v3.0.0
-            .url = "https://github.com/JacobCrabill/zig-Micro-XRCE-DDS-Client/archive/e93abb501a961de891fabaee4ef9ea952ebd9ad6.tar.gz",
-            .hash = "Micro_XRCE_DDS_Client-3.0.0-i47TMwMaAAD2X3-6TyHAzaTY1P1DGWTaDWTa5dldAeaD",
-        },
         .libstatistics_collector = .{
             .url = "https://github.com/ros-tooling/libstatistics_collector/archive/tags/1.7.3.tar.gz", // Jazzy
             .hash = "N-V-__8AANe2AQA6GrjZt4In35ZFi3ZTK7nEsId8cbdGKHub",
-        },
-        .ament_index = .{
-            .url = "https://github.com/ament/ament_index/archive/tags/1.8.1.tar.gz", // Jazzy
-            .hash = "N-V-__8AABkAAgBFOfBKsjyttg1QjSuuF8HKeeR3Y4Up-F3x",
         },
         .rclcpp = .{
             .lazy = true,
@@ -118,22 +134,6 @@
             .url = "https://github.com/zig-robotics/ros2-rclcpp/archive/435f377374a363889b95ce011020d80d3682c24e.tar.gz", // Jazzy
             .hash = "N-V-__8AAFLpQAA6Ilb6UvWM6QZpuiXNyegIJYyrN7cIqrw5",
         },
-        .ros2_common_interfaces = .{
-            .url = "https://github.com/ros2/common_interfaces/archive/refs/tags/5.4.2.tar.gz",
-            .hash = "N-V-__8AAJatCADp2QPDFq8wzBG--OTM2oVMdj3kk5FLvnk0",
-        },
-        .cyclonedds = .{
-            .url = "https://github.com/JacobCrabill/zig-cyclonedds/archive/164d4d74f8d5f73246e4bfb4ff792502f233f2e5.tar.gz",
-            .hash = "cyclonedds-0.10.5-VJFfyyhAAAA3PuJOcm4lE4WwvX5RzlBAml6q8fAYSkyy",
-        },
-        .yaml = .{
-            .url = "https://github.com/zig-robotics/libyaml/archive/tags/0.2.5.tar.gz",
-            .hash = "yaml-0.2.5--LGJNH0IAAD6ezzyKSkd6ZY7dgS593rcMWMPsJOYdE0v",
-        },
-        .spdlog = .{
-            .url = "https://github.com/gabime/spdlog/archive/tags/v1.14.1.tar.gz",
-            .hash = "N-V-__8AAJSgEQBm_CX16IKfCtcWMyIFbucHpA9_ojS59TbP",
-        },
         .console_bridge = .{
             .url = "https://github.com/ros/console_bridge/archive/122ed72b90bc9b69c68bafae901a78fcd43270a1.tar.gz",
             .hash = "N-V-__8AALYOFQCW61yPTiJ2Z1o8Y9hS-_qLW611GBcym11w",
@@ -142,6 +142,18 @@
             .url = "https://github.com/ros/class_loader/archive/8bad929bd8b2777b8d2b6eff7227b2c5f325b11d.tar.gz",
             .hash = "N-V-__8AAIy7AgCr5ZHlavhEo2ir9wqQZYJhGZUGs3xi5jNE",
         },
+
+        // ---------------- Eclipse Cyclone DDS Libraries ----------------
+        .cyclonedds = .{
+            .url = "https://github.com/JacobCrabill/zig-cyclonedds/archive/164d4d74f8d5f73246e4bfb4ff792502f233f2e5.tar.gz",
+            .hash = "cyclonedds-0.10.5-VJFfyyhAAAA3PuJOcm4lE4WwvX5RzlBAml6q8fAYSkyy",
+        },
+        .rmw_cyclonedds = .{
+            .url = "https://github.com/ros2/rmw_cyclonedds/archive/tags/2.2.2.tar.gz", // Jazzy
+            .hash = "N-V-__8AABimBgDdEC4Fs38lnA5yi-L6SQr1LA9xEoTqHwtv",
+        },
+
+        // ---------------- eProsima Fast DDS Libraries ----------------
         .fastdds = .{
             .url = "https://github.com/JacobCrabill/zig-Fast-DDS/archive/b210f38890c5d930dfaa532a6617980ab4481e6a.tar.gz",
             .hash = "zig_fastdds-2.14.4-8klu5l9EAACFX5Tz0ZJv7eXTBKUveipsLYLLg7azprVo",
@@ -150,37 +162,124 @@
             .url = "https://github.com/JacobCrabill/zig-Fast-CDR/archive/ef20d049e2f86dcf5dfe7616b066c6e738c43809.tar.gz",
             .hash = "zig_fastcdr-2.3.0-5tEjoEAKAABOQ72Spj9w0-r52F6OAWD5WWtN82yNS9Cs",
         },
+        .rmw_fastrtps = .{
+            .url = "https://github.com/ros2/rmw_fastrtps/archive/tags/8.4.2.tar.gz", // Jazzy
+            .hash = "N-V-__8AAJfGDwBuB8dw_dGNr54o2W69RmQ05Lc-BTdF68TM",
+            //.path = "../rmw_fastrtps",
+        },
+
+        // ---------------- Micro XRCE DDS Libraries ----------------
+        .microcdr = .{
+            .url = "https://github.com/JacobCrabill/zig-Micro-CDR/archive/2f9de9935faa2ae42586c3a03f5b8131ac327ac0.tar.gz",
+            .hash = "microcdr-2.0.1-8sp6bosKAACsIO_8DJnpcrqE7FeEHQK04mgQZ59Edb28",
+        },
+        .uxrce_client = .{
+            // v3.0.0
+            .url = "https://github.com/JacobCrabill/zig-Micro-XRCE-DDS-Client/archive/e93abb501a961de891fabaee4ef9ea952ebd9ad6.tar.gz",
+            .hash = "Micro_XRCE_DDS_Client-3.0.0-i47TMwMaAAD2X3-6TyHAzaTY1P1DGWTaDWTa5dldAeaD",
+        },
+        .rmw_microxrcedds = .{
+            // v5.0.1+
+            .url = "https://github.com/micro-ROS/rmw_microxrcedds/archive/a698d4e9fc7f6780c44cc900a279d3f2d0c90856.tar.gz",
+            .hash = "N-V-__8AAGRRCAAVivtplrHq2b3GKjl-SNstnTu_A8rZ_y_H",
+        },
+        .rosidl_typesupport_microxrcedds = .{
+            // Jazzy
+            .url = "https://github.com/micro-ROS/rosidl_typesupport_microxrcedds/archive/5307e89ea96a58648d55a2985ec391ac66125bee.tar.gz",
+            .hash = "N-V-__8AAE5eAwADWOAp4ZJRGBSxOtEgfmxsBbzQ7Va7A7HQ",
+        },
+        // .uxr_agent = .{
+        //     .url = "https://github.com/JacobCrabill/zig-Micro-XRCE-DDS-Agent/archive/d7bde7845674e8475f353e499f8dd4a6e32e7fa9.tar.gz",
+        //     .hash = "Micro_XRCE_DDS_Agent-3.0.1-gbyEDh0hAAA-T3V7YrrYg-nhcYpqKvnFzWluV-Ycgy3f",
+        // },
+
+        // ---------------- ROS Interfaces ----------------
+        .ros2_common_interfaces = .{
+            .url = "https://github.com/ros2/common_interfaces/archive/refs/tags/5.4.2.tar.gz",
+            .hash = "N-V-__8AAJatCADp2QPDFq8wzBG--OTM2oVMdj3kk5FLvnk0",
+        },
+        .geographic_info = .{
+            .url = "https://github.com/ros-geographic-info/geographic_info/archive/24806adc767414eb3a34a58aefeb648ee415b09a.tar.gz",
+            .hash = "N-V-__8AAEfGAQAUTz2wAUeTzIhKhi_pXlflNdRRjRNewPfv",
+        },
+        .mavros = .{
+            .url = "https://github.com/mavlink/mavros/archive/a0adc8a501e3b1f0028d6da1799fade17d047fe7.tar.gz",
+            .hash = "N-V-__8AAPp0GgAn-6XuF92Me5f6cI5bCjg8QD1byu-VWvlD",
+        },
+
+        // ---------------- ROS Extension Libraries ----------------
+        .boost_config = .{
+            .url = "git+https://github.com/boostorg/config#boost-1.87.0",
+            .hash = "N-V-__8AAAjwJwBg4iFwfKvTjvtcG__DxWzOH-TCXrqRoUqz",
+        },
+        .boost_endian = .{
+            .url = "git+https://github.com/boostorg/endian#boost-1.87.0",
+            .hash = "N-V-__8AANPCCABJ812aZO1FicLQy03KMHkSX0uUYOkdn8v4",
+        },
+        .dynmsg = .{
+            .url = "https://github.com/JacobCrabill/dynamic_message_introspection/archive/4a7a46a884bb8a7e71a0a44170b39f99b3667566.tar.gz",
+            .hash = "N-V-__8AAJd5BABDvmKG9v-H2vyu-OW3ICY3_Dc25UWJ_x9c",
+        },
+        .geometry2 = .{ // tf2 libraries
+            .url = "https://github.com/ros2/geometry2/archive/2ab06cfe06d3ccae87f3d27ba5b1968b295caa2d.tar.gz",
+            .hash = "N-V-__8AAJtYFQAMVZ0WmlxP67sLQ7_ukJOC0GNgPferLlcr",
+        },
+        .image_common = .{
+            .url = "https://github.com/ros-perception/image_common/archive/913f5acae4ebd45e904dbb03d1f9086472b580f6.tar.gz",
+            .hash = "N-V-__8AAAKZBgB5NTj7p6HVnltE2Zgj4TSDWv9PRTPJe5XH",
+        },
+        .message_filters = .{
+            .url = "https://github.com/ros2/message_filters/archive/12ff51437d576123f7b2f56ac4be8237b4894989.tar.gz",
+            .hash = "N-V-__8AAPnrBQDKj2oeMuVGxoUM0DesqTq7oAm-mhYFfUvz",
+        },
+        .vision_opencv = .{
+            .url = "https://github.com/ros-perception/vision_opencv/archive/e6b1511e89c119e60f6563e4462c6a598f61872a.tar.gz",
+            .hash = "N-V-__8AAAwSBQA7nZflhA9Csh5OxrRem2XhxH3I33MyeJrM",
+        },
+
+        // ---------------- Zig Packages ----------------
+        .flags = .{
+            .url = "https://github.com/n0s4/flags/archive/0e2491d8e6d2be38dc0c2ce8e103469886e468bb.tar.gz",
+            .hash = "flags-0.10.0-a_9h3kR2AABNAfaPGRyOOGmWsfv12Hk6JQPTX4MM446s",
+        },
     },
     .paths = .{
         "build.zig",
         "build.zig.zon",
-        "ament_index/build.zig",
-        "libstatistics_collector/build.zig",
-        "common_interfaces/build.zig",
-        "rcl/build.zig",
-        "rclcpp/build.zig",
-        "rcl_interfaces/build.zig",
-        "rcl_interfaces/unique_identifier_msgs",
-        "rcl_logging/build.zig",
-        "rcpputils/build.zig",
-        "rcutils/build.zig",
-        "rmw/build.zig",
-        "rmw_cyclonedds/build.zig",
-        "rmw_dds_common/build.zig",
-        "rmw_fastrtps/build.zig",
-        "rmw_microxrcedds/build.zig",
-        "ros2_tracing/build.zig",
-        "rosidl/build.zig",
-        "rosidl/src/adapter_generator.zig",
-        "rosidl/src/code_generator.zig",
-        "rosidl/src/RosidlAdapter.zig",
-        "rosidl/src/RosidlGeneratorTemplate.zig",
-        "rosidl/src/RosidlGenerator.zig",
-        "rosidl/src/RosidlTypeDescription.zig",
-        "rosidl/src/type_description_generator.zig",
+        "interfaces/common_interfaces/build.zig",
+        "ros_deps/ament_index/build.zig",
+        "ros_deps/class_loader/build.zig",
+        "ros_deps/console_bridge/build.zig",
+        "ros_deps/console_bridge/include",
+        "ros_deps/pluginlib/*",
+        "ros_core/libstatistics_collector/build.zig",
+        "ros_core/rcl/build.zig",
+        "ros_core/rcl_interfaces/build.zig",
+        "ros_core/rcl_interfaces/unique_identifier_msgs",
+        "ros_core/rcl_logging/build.zig",
+        "ros_core/rclcpp/build.zig",
+        "ros_core/rcpputils/build.zig",
+        "ros_core/rcutils/build.zig",
+        "ros_core/ros2_tracing/build.zig",
+        "ros_core/rosidl/build.zig",
+        "ros_core/rosidl/src/RosidlAdapter.zig",
+        "ros_core/rosidl/src/RosidlGenerator.zig",
+        "ros_core/rosidl/src/RosidlGeneratorTemplate.zig",
+        "ros_core/rosidl/src/RosidlTypeDescription.zig",
+        "ros_core/rosidl/src/adapter_generator.zig",
+        "ros_core/rosidl/src/code_generator.zig",
+        "ros_core/rosidl/src/type_description_generator.zig",
+        "ros_extra/camera_info_manager/*",
+        // "ros_extra/cv_bridge/*",
+        "ros_extra/dynmsg/*",
+        "ros_extra/image_transport/*",
+        "ros_extra/message_filters/*",
+        "ros_extra/tf2/*",
+        "ros_rmw/rmw/build.zig",
+        "ros_rmw/rmw_cyclonedds/build.zig",
+        "ros_rmw/rmw_dds_common/build.zig",
+        "ros_rmw/rmw_fastrtps/build.zig",
+        "ros_rmw/rmw_microxrcedds/build.zig",
         "zigros/zigros.zig",
-        "console_bridge/build.zig",
-        "console_bridge/include",
-        "class_loader/build.zig",
     },
 }

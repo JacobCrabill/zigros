@@ -1,6 +1,6 @@
 // Common functions and structs used throughout the zigros build.
 const std = @import("std");
-const Interface = @import("../rosidl/src/RosidlGenerator.zig").Interface;
+const Interface = @import("../ros_core/rosidl/src/RosidlGenerator.zig").Interface;
 
 pub const Language = enum {
     c,
