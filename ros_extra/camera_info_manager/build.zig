@@ -133,7 +133,6 @@ pub fn buildWithArgs(b: *std.Build, deps: Deps, opts: zigros.CompileArgs) Artifa
     camera_info_manager.addIncludePath(deps.rosidl_typesupport_interface);
     camera_info_manager.addIncludePath(deps.tracetools);
     if (b.named_lazy_paths.get("sensor_msgs")) |sensor_msgs_inc| {
-        std.debug.print("Using named_lazy_path for sensor_msgs\n", .{});
         camera_info_manager.addIncludePath(sensor_msgs_inc);
     }
 

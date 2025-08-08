@@ -27,7 +27,7 @@ const console_bridge = @import("ros_deps/console_bridge/build.zig");
 const camera_info = @import("ros_extra/camera_info_manager/build.zig");
 const common_interfaces = @import("interfaces/common_interfaces/build.zig");
 const dynmsg = @import("ros_extra/dynmsg/build.zig");
-const image_transport = @import("ros_extra/image_transport/build.zig");
+// const image_transport = @import("ros_extra/image_transport/build.zig");
 const message_filters = @import("ros_extra/message_filters/build.zig");
 const tf2 = @import("ros_extra/tf2/build.zig");
 
@@ -107,7 +107,7 @@ pub const RosLibraries = struct {
     class_loader: *Compile,
     console_bridge: *Compile,
     dynmsg: *Compile,
-    image_transport: *Compile,
+    // image_transport: *Compile,
     message_filters: *Compile,
     tf2: *Compile,
     tf2_msgs: RosidlGenerator.Interface,
@@ -265,19 +265,20 @@ pub const ZigRos = struct {
                 .tracetools = dep.namedWriteFiles("tracetools").getDirectory(),
                 .rcl_yaml_param_parser = dep.artifact("rcl_yaml_param_parser"),
                 .yaml = dep.artifact("yaml"), // External
-                .yaml_cpp = dep.artifact("yaml_cpp"), // External
-                .console_bridge = dep.artifact("console_bridge"),
-                .class_loader = dep.artifact("class_loader"),
-                .geographic = dep.artifact("geographic"),
-                .pluginlib = dep.artifact("pluginlib"),
-                .tinyxml2 = dep.artifact("tinyxml2"),
-                .message_filters = dep.artifact("message_filters"),
+                .yaml_cpp = dep.artifact("yaml-cpp"), // External
                 .camera_calibration_parsers = dep.artifact("camera_calibration_parsers"),
                 .camera_info_manager = dep.artifact("camera_info_manager"),
+                .class_loader = dep.artifact("class_loader"),
+                .console_bridge = dep.artifact("console_bridge"),
+                .dynmsg = dep.artifact("dynmsg"),
+                .geographic = dep.artifact("geographic"),
+                .message_filters = dep.artifact("message_filters"),
+                .pluginlib = dep.artifact("pluginlib"),
                 .tf2 = dep.artifact("tf2"),
-                .tf2_ros = dep.artifact("tf2_ros"),
-                .tf2_msgs = dep.artifact("tf2_msgs"),
                 .tf2_eigen = dep.artifact("tf2_eigen"),
+                .tf2_msgs = extractInterface(dep, "tf2_msgs"),
+                .tf2_ros = dep.artifact("tf2_ros"),
+                .tinyxml2 = dep.artifact("tinyxml2"),
                 .rcl = dep.artifact("rcl"),
                 .rcl_action = dep.artifact("rcl_action"),
                 .rcl_lifecycle = dep.artifact("rcl_lifecycle"),
