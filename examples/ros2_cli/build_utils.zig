@@ -16,6 +16,7 @@ pub const BuildOpts = struct {
 pub const RmwKind = enum(u8) {
     cyclonedds,
     fastrtps,
+    zenoh,
 };
 
 /// Link the chosen RMW implementation
@@ -23,6 +24,7 @@ pub fn linkRmw(step: *std.Build.Step.Compile, zigros: *const zr.ZigRos, rmw: Rmw
     switch (rmw) {
         .cyclonedds => zigros.linkRmwCycloneDds(step),
         .fastrtps => zigros.linkRmwFastRtps(step),
+        .zenoh => zigros.linkRmwZenoh(step),
     }
 }
 

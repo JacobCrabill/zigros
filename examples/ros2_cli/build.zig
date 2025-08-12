@@ -2,6 +2,11 @@ const std = @import("std");
 const zr = @import("zigros");
 const utils = @import("build_utils.zig");
 
+pub const std_options: std.Options = .{
+    // Set the log level to info; options are debug, info, warn, err
+    .log_level = .debug,
+};
+
 const Compile = std.Build.Step.Compile;
 
 pub fn build(b: *std.Build) !void {
@@ -43,6 +48,9 @@ pub fn build(b: *std.Build) !void {
         .name = "ros2_cli",
         .target = build_opts.target,
         .optimize = build_opts.optimize,
+        .use_llvm = false,
+        // .use_lld = true,
+        .strip = false,
     });
     ros2_cli.addCSourceFiles(.{
         .root = upstream.path("dynmsg_demo/src"),
@@ -55,7 +63,31 @@ pub fn build(b: *std.Build) !void {
     ros2_cli.addIncludePath(zigros.ros_libraries.rosidl_typesupport_interface);
     ros2_cli.linkLibrary(zigros.ros_libraries.yaml_cpp);
     zigros.linkRcl(ros2_cli);
+    zigros.linkLoggerSpd(ros2_cli);
     utils.linkRmw(ros2_cli, &zigros, rmw);
+
+    // HACK - why is the library path getting dropped...?
+    ros2_cli.addIncludePath(.{ .cwd_relative = "/home/jcrabill/.local/include/x86_64-linux-musl/" });
+    ros2_cli.addLibraryPath(.{ .cwd_relative = "/home/jcrabill/.local/lib/x86_64-linux-musl/" });
+    ros2_cli.linkSystemLibrary2("zenohc", .{
+        .search_strategy = .paths_first,
+        .preferred_link_mode = .static,
+    });
+
+    if (linkage == .dynamic) {
+        for (ros2_cli.root_module.link_objects.items) |obj| {
+            switch (obj) {
+                .other_step => |compile_step| b.installArtifact(compile_step),
+                else => {},
+            }
+        }
+        // inline for (@typeInfo(@TypeOf(zigros.ros_libraries)).@"struct".fields) |field| {
+        //     std.debug.print("library: {s}\n", .{field.name});
+        //     if (field.type == *Compile) {
+        //         b.installArtifact(@field(zigros.ros_libraries, field.name));
+        //     }
+        // }
+    }
 
     b.installArtifact(ros2_cli);
 }
