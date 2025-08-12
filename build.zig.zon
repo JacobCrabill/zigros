@@ -68,8 +68,9 @@
         // ---------------- Core ROS Libraries ----------------
 
         .rcutils = .{
-            .url = "https://github.com/ros2/rcutils/archive/tags/6.7.1.tar.gz", // Jazzy
-            .hash = "N-V-__8AAOqPDQCP7E4N6LwRxUvQSKSZHzshqQi4Usv939E-",
+            // .url = "https://github.com/ros2/rcutils/archive/tags/6.7.3.tar.gz", // Jazzy
+            .url = "https://github.com/ros2/rcutils/archive/fcc37e51b4d6017dfbebee161d92c7c2fc3d9596.tar.gz", // Jazzy, 6.7.3
+            .hash = "N-V-__8AAB6dDQBYiCzk6BCe-DGzU8Uj3gnRG7rgziBVvLuW",
         },
         .rcpputils = .{
             .url = "https://github.com/ros2/rcpputils/archive/tags/2.11.0.tar.gz", // Jazzy
@@ -166,6 +167,13 @@
             .url = "https://github.com/ros2/rmw_fastrtps/archive/tags/8.4.2.tar.gz", // Jazzy
             .hash = "N-V-__8AAJfGDwBuB8dw_dGNr54o2W69RmQ05Lc-BTdF68TM",
             //.path = "../rmw_fastrtps",
+        },
+
+        // ---------------- Zenoh Libraries ----------------
+        .rmw_zenoh = .{
+            // NOTE: Requires rcutils >= 6.7.3
+            .url = "https://github.com/ros2/rmw_zenoh/archive/513939356681a2cfc3142e86635d3e2538a04b6e.tar.gz", // Jazzy
+            .hash = "N-V-__8AAKr1CQBi_H6iPsmbJZ5jCEOb80DDsR1Awl9Ore_T",
         },
 
         // ---------------- Micro XRCE DDS Libraries ----------------

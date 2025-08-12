@@ -105,7 +105,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
             time,
             "src/uint8_array.c",
         },
-        //.flags = &.{"-fvisibility=hidden"},
+        .flags = &.{ "-Wall", "-Wextra", "-Wpedantic" },
     });
 
     // process.c assumes that program_invocation_name exists which is a gnu specific thing.

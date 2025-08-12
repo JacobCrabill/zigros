@@ -20,6 +20,7 @@ const rmw = @import("ros_rmw/rmw/build.zig");
 const rmw_dds_common = @import("ros_rmw/rmw_dds_common/build.zig");
 const rmw_cyclonedds = @import("ros_rmw/rmw_cyclonedds/build.zig");
 const rmw_fastrtps = @import("ros_rmw/rmw_fastrtps/build.zig");
+const rmw_zenoh = @import("ros_rmw/rmw_zenoh/build.zig");
 // const rmw_uxrce = @import("ros_rmw/rmw_microxrcedds/build.zig");
 
 const class_loader = @import("ros_deps/class_loader/build.zig");
@@ -58,6 +59,7 @@ const UpstreamDependencies = struct {
     rcl: *Dependency,
     rmw_cyclonedds: *Dependency,
     rmw_fastrtps: *Dependency,
+    rmw_zenoh: *Dependency,
     // rmw_uxrce: *Dependency,
     libstatistics_collector: *Dependency,
     ament_index: *Dependency,
@@ -120,6 +122,7 @@ pub const RosLibraries = struct {
     rmw_fastrtps_cpp: *Compile,
     rmw_fastrtps_dynamic_cpp: *Compile,
     rmw_fastrtps_shared_cpp: *Compile,
+    rmw_zenoh_cpp: *Compile,
     // rmw_uxrce: *Compile,
     // microcdr: *Compile, // External
     // uxrce_client: *Compile, // External
@@ -286,6 +289,7 @@ pub const ZigRos = struct {
                 .rmw_fastrtps_cpp = dep.artifact("rmw_fastrtps_cpp"),
                 .rmw_fastrtps_dynamic_cpp = dep.artifact("rmw_fastrtps_dynamic_cpp"),
                 .rmw_fastrtps_shared_cpp = dep.artifact("rmw_fastrtps_shared_cpp"),
+                .rmw_zenoh_cpp = dep.artifact("rmw_zenoh_cpp"),
                 // .rmw_uxrce = dep.artifact("rmw_uxrce"),
                 // .microcdr = dep.artifact("microcdr"),
                 // .uxrce_client = dep.artifact("uxrce_client"),
@@ -412,28 +416,29 @@ pub const ZigRos = struct {
 
     pub fn linkRmwFastRtps(self: ZigRos, step: *Compile) void {
         // ---- Only choose one of fastrtps_cpp or fastrtps_dynamic_cpp! ----
-        // step.root_module.linkLibrary(self.ros_libraries.rmw_fastrtps_cpp);
-        // step.root_module.linkLibrary(self.ros_libraries.rosidl_dynamic_typesupport_fastrtps);
-        // step.root_module.linkLibrary(self.ros_libraries.rosidl_typesupport_fastrtps_c);
-        // step.root_module.linkLibrary(self.ros_libraries.rosidl_typesupport_fastrtps_cpp);
+        step.root_module.linkLibrary(self.ros_libraries.rmw_fastrtps_cpp);
+        // step.root_module.linkLibrary(self.ros_libraries.rmw_fastrtps_dynamic_cpp);
 
-        step.root_module.linkLibrary(self.ros_libraries.rmw_fastrtps_dynamic_cpp);
+        // Always link all typesupport libraries...?
+        step.root_module.linkLibrary(self.ros_libraries.rosidl_dynamic_typesupport_fastrtps);
+        step.root_module.linkLibrary(self.ros_libraries.rosidl_typesupport_fastrtps_c);
+        step.root_module.linkLibrary(self.ros_libraries.rosidl_typesupport_fastrtps_cpp);
 
+        // ---- Always link the 'shared' libraries ----
         step.root_module.linkLibrary(self.ros_libraries.rmw_fastrtps_shared_cpp);
         step.root_module.linkLibrary(self.ros_libraries.fastdds);
         step.root_module.linkLibrary(self.ros_libraries.fastcdr);
-        //step.installLibraryHeaders(self.ros_libraries.rmw_fastrtps_cpp);
-        //step.installLibraryHeaders(self.ros_libraries.rmw_fastrtps_shared_cpp);
-        //step.installLibraryHeaders(self.ros_libraries.fastdds);
-        //step.installLibraryHeaders(self.ros_libraries.fastcdr);
-        //step.installLibraryHeaders(self.ros_libraries.rosidl_dynamic_typesupport_fastrtps);
-        //step.installLibraryHeaders(self.ros_libraries.rosidl_typesupport_fastrtps_c);
-        //step.installLibraryHeaders(self.ros_libraries.rosidl_typesupport_fastrtps_cpp);
+    }
+
+    pub fn linkRmwZenoh(self: ZigRos, step: *Compile) void {
+        step.root_module.linkLibrary(self.ros_libraries.rmw_zenoh_cpp);
+        step.root_module.linkLibrary(self.ros_libraries.rosidl_typesupport_fastrtps_c);
+        step.root_module.linkLibrary(self.ros_libraries.rosidl_typesupport_fastrtps_cpp);
+        step.root_module.linkLibrary(self.ros_libraries.fastcdr);
     }
 
     pub fn linkLoggerSpd(self: ZigRos, step: *Compile) void {
         step.linkLibrary(self.ros_libraries.rcl_logging_spdlog);
-        //step.installLibraryHeaders(self.ros_libraries.rcl_logging_spdlog);
     }
 
     pub fn createInterface(
@@ -541,6 +546,7 @@ pub fn build(b: *std.Build) void {
         .rcl = b.dependency("rcl", .{}),
         .rmw_cyclonedds = b.dependency("rmw_cyclonedds", .{}),
         .rmw_fastrtps = b.dependency("rmw_fastrtps", .{}),
+        .rmw_zenoh = b.dependency("rmw_zenoh", .{}),
         // .rmw_uxrce = b.dependency("rmw_microxrcedds", .{}),
         .libstatistics_collector = b.dependency("libstatistics_collector", .{}),
         .ament_index = b.dependency("ament_index", .{}),
@@ -873,6 +879,27 @@ pub fn build(b: *std.Build) void {
     ros_libraries.rosidl_dynamic_typesupport_fastrtps = fastrtps_libs.rosidl_dynamic_typesupport_fastrtps;
     ros_libraries.rosidl_typesupport_fastrtps_c = fastrtps_libs.rosidl_typesupport_fastrtps_c;
     ros_libraries.rosidl_typesupport_fastrtps_cpp = fastrtps_libs.rosidl_typesupport_fastrtps_cpp;
+
+    const zenoh_artifacts = rmw_zenoh.buildWithArgs(b, compile_args, .{
+        .upstream = upstream_dependencies.rmw_zenoh,
+        .ament_index_cpp = ros_libraries.ament_index_cpp,
+        .fastcdr = fastcdr,
+        .rcpputils = ros_libraries.rcpputils,
+        .rcutils = ros_libraries.rcutils,
+        .rmw = ros_libraries.rmw,
+        .rosidl_typesupport_fastrtps_c = ros_libraries.rosidl_typesupport_fastrtps_c,
+        .rosidl_typesupport_fastrtps_cpp = ros_libraries.rosidl_typesupport_fastrtps_cpp,
+        .tracetools = ros_libraries.tracetools,
+        .zenohc_library_path = "/home/jcrabill/.local/lib/",
+        .zenohc_include_path = "/home/jcrabill/.local/include/",
+        .rosidl_runtime_c = ros_libraries.rosidl_runtime_c,
+        .rosidl_runtime_cpp = ros_libraries.rosidl_runtime_cpp,
+        .rosidl_typesupport_introspection_c = ros_libraries.rosidl_typesupport_introspection_c,
+        .rosidl_typesupport_introspection_cpp = ros_libraries.rosidl_typesupport_introspection_cpp,
+        .rosidl_typesupport_interface = ros_libraries.rosidl_typesupport_interface,
+        .rosidl_dynamic_typesupport = ros_libraries.rosidl_dynamic_typesupport,
+    });
+    ros_libraries.rmw_zenoh_cpp = zenoh_artifacts.rmw_zenoh_cpp;
 
     // const microcdr = b.dependency("microcdr", compile_args).artifact("microcdr");
     // const uxrce_client = b.dependency("uxrce_client", compile_args).artifact("micro-xrce-dds-client");
