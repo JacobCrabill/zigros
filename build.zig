@@ -22,6 +22,7 @@ const rmw_cyclonedds = @import("ros_rmw/rmw_cyclonedds/build.zig");
 const rmw_fastrtps = @import("ros_rmw/rmw_fastrtps/build.zig");
 const rmw_zenoh = @import("ros_rmw/rmw_zenoh/build.zig");
 // const rmw_uxrce = @import("ros_rmw/rmw_microxrcedds/build.zig");
+const typesupport_fastrtps = @import("ros_rmw/typesupport_fastrtps//build.zig");
 
 const class_loader = @import("ros_deps/class_loader/build.zig");
 const console_bridge = @import("ros_deps/console_bridge/build.zig");
@@ -120,7 +121,7 @@ pub const RosLibraries = struct {
     rcl_lifecycle: *Compile,
     rmw_cyclonedds_cpp: *Compile,
     rmw_fastrtps_cpp: *Compile,
-    rmw_fastrtps_dynamic_cpp: *Compile,
+    // rmw_fastrtps_dynamic_cpp: *Compile,
     rmw_fastrtps_shared_cpp: *Compile,
     rmw_zenoh_cpp: *Compile,
     // rmw_uxrce: *Compile,
@@ -164,6 +165,11 @@ pub const PythonLibraries = struct {
     rosidl_typesupport_introspection_cpp: LazyPath,
     rosidl_typesupport_c: LazyPath,
     rosidl_typesupport_cpp: LazyPath,
+    // RMW-specific typesupport generator libraries.
+    // These are extensions normally registered via CMake via Ament to generate
+    // additional, RMW-specific typesupport libraries.
+    rosidl_typesupport_fastrtps_c: LazyPath,
+    rosidl_typesupport_fastrtps_cpp: LazyPath,
 };
 
 //  Extracts the expected artifacts given a package name
@@ -200,6 +206,16 @@ fn extractInterface(dep: *std.Build.Dependency, name: []const u8) RosidlGenerato
         .typesupport_introspection_cpp = dep.artifact(std.fmt.bufPrint(
             &buf,
             "{s}__rosidl_typesupport_introspection_cpp",
+            .{name},
+        ) catch @panic("Buffer too small")),
+        .typesupport_fastrtps_c = dep.artifact(std.fmt.bufPrint(
+            &buf,
+            "{s}__rosidl_typesupport_fastrtps_c",
+            .{name},
+        ) catch @panic("Buffer too small")),
+        .typesupport_fastrtps_cpp = dep.artifact(std.fmt.bufPrint(
+            &buf,
+            "{s}__rosidl_typesupport_fastrtps_cpp",
             .{name},
         ) catch @panic("Buffer too small")),
     };
@@ -287,7 +303,7 @@ pub const ZigRos = struct {
                 .rcl_lifecycle = dep.artifact("rcl_lifecycle"),
                 .rmw_cyclonedds_cpp = dep.artifact("rmw_cyclonedds_cpp"),
                 .rmw_fastrtps_cpp = dep.artifact("rmw_fastrtps_cpp"),
-                .rmw_fastrtps_dynamic_cpp = dep.artifact("rmw_fastrtps_dynamic_cpp"),
+                // .rmw_fastrtps_dynamic_cpp = dep.artifact("rmw_fastrtps_dynamic_cpp"),
                 .rmw_fastrtps_shared_cpp = dep.artifact("rmw_fastrtps_shared_cpp"),
                 .rmw_zenoh_cpp = dep.artifact("rmw_zenoh_cpp"),
                 // .rmw_uxrce = dep.artifact("rmw_uxrce"),
@@ -330,6 +346,8 @@ pub const ZigRos = struct {
                 .rosidl_typesupport_introspection_cpp = dep.namedWriteFiles("rosidl_typesupport_introspection_cpp").getDirectory(),
                 .rosidl_typesupport_c = dep.namedWriteFiles("rosidl_typesupport_c").getDirectory(),
                 .rosidl_typesupport_cpp = dep.namedWriteFiles("rosidl_typesupport_cpp").getDirectory(),
+                .rosidl_typesupport_fastrtps_c = dep.namedWriteFiles("rosidl_typesupport_fastrtps_c").getDirectory(),
+                .rosidl_typesupport_fastrtps_cpp = dep.namedWriteFiles("rosidl_typesupport_fastrtps_cpp").getDirectory(),
             },
             .python = if (!system_python)
                 // note python is forced to musl to fix an issue building within alpine
@@ -459,7 +477,10 @@ pub const ZigRos = struct {
                 .rosidl_typesupport_cpp = self.ros_libraries.rosidl_typesupport_cpp,
                 .rosidl_typesupport_introspection_c = self.ros_libraries.rosidl_typesupport_introspection_c,
                 .rosidl_typesupport_introspection_cpp = self.ros_libraries.rosidl_typesupport_introspection_cpp,
+                .rosidl_typesupport_fastrtps_c = self.ros_libraries.rosidl_typesupport_fastrtps_c,
+                .rosidl_typesupport_fastrtps_cpp = self.ros_libraries.rosidl_typesupport_fastrtps_cpp,
                 .rcutils = self.ros_libraries.rcutils,
+                .fastcdr = self.ros_libraries.fastcdr,
             },
             .{
                 .python = self.python, // TODO not sure how to get the correct python;
@@ -476,6 +497,8 @@ pub const ZigRos = struct {
                 .rosidl_typesupport_cpp = self.python_libraries.rosidl_typesupport_cpp,
                 .rosidl_typesupport_introspection_c = self.python_libraries.rosidl_typesupport_introspection_c,
                 .rosidl_typesupport_introspection_cpp = self.python_libraries.rosidl_typesupport_introspection_cpp,
+                .rosidl_typesupport_fastrtps_c = self.python_libraries.rosidl_typesupport_fastrtps_c,
+                .rosidl_typesupport_fastrtps_cpp = self.python_libraries.rosidl_typesupport_fastrtps_cpp,
                 .type_description_generator = self.type_description_generator,
                 .adapter_generator = self.adapter_generator,
                 .code_generator = self.code_generator,
@@ -523,6 +546,8 @@ pub fn build(b: *std.Build) void {
         .rosidl_typesupport_introspection_cpp = undefined,
         .rosidl_typesupport_c = undefined,
         .rosidl_typesupport_cpp = undefined,
+        .rosidl_typesupport_fastrtps_c = undefined,
+        .rosidl_typesupport_fastrtps_cpp = undefined,
     };
 
     // All upstream dependencies are direct ROS packages that do not contain zig build files
@@ -638,6 +663,36 @@ pub fn build(b: *std.Build) void {
         .rosidl_runtime_c = ros_libraries.rosidl_runtime_c,
     });
 
+    const fastdds = b.dependency("fastdds", compile_args).artifact("fast-dds");
+    const fastcdr = b.dependency("fastcdr", compile_args).artifact("fast-cdr");
+    b.installArtifact(fastcdr);
+    b.installArtifact(fastdds);
+
+    // Build the underlying typesupport library for FastRTPS
+    // This will be used by the individual typesupport libraries for every generated interface
+    const fastrtps_typesupport_libs = typesupport_fastrtps.buildWithArgs(
+        b,
+        compile_args,
+        .{
+            .typesupport_upstream = b.dependency("rosidl_typesupport_fastrtps", .{}),
+            .dynamic_typesupport_upstream = b.dependency("rosidl_dynamic_typesupport_fastrtps", .{}),
+            .fastcdr = fastcdr,
+            .fastdds = fastdds,
+            .rmw = ros_libraries.rmw,
+            .rosidl_runtime_c = ros_libraries.rosidl_runtime_c,
+            .rosidl_runtime_cpp = ros_libraries.rosidl_runtime_cpp,
+            .rosidl_typesupport_interface = ros_libraries.rosidl_typesupport_interface,
+            .rosidl_dynamic_typesupport = ros_libraries.rosidl_dynamic_typesupport,
+        },
+    );
+    ros_libraries.rosidl_dynamic_typesupport_fastrtps = fastrtps_typesupport_libs.rosidl_dynamic_typesupport_fastrtps;
+    ros_libraries.rosidl_typesupport_fastrtps_c = fastrtps_typesupport_libs.rosidl_typesupport_fastrtps_c;
+    ros_libraries.rosidl_typesupport_fastrtps_cpp = fastrtps_typesupport_libs.rosidl_typesupport_fastrtps_cpp;
+    python_libraries.rosidl_typesupport_fastrtps_c =
+        fastrtps_typesupport_libs.rosidl_typesupport_fastrtps_c_py;
+    python_libraries.rosidl_typesupport_fastrtps_cpp =
+        fastrtps_typesupport_libs.rosidl_typesupport_fastrtps_cpp_py;
+
     const rosidl_generator_deps = RosidlGenerator.Deps{
         .rosidl_runtime_c = ros_libraries.rosidl_runtime_c,
         .rosidl_runtime_cpp = ros_libraries.rosidl_runtime_cpp,
@@ -646,7 +701,10 @@ pub fn build(b: *std.Build) void {
         .rosidl_typesupport_cpp = ros_libraries.rosidl_typesupport_cpp,
         .rosidl_typesupport_introspection_c = ros_libraries.rosidl_typesupport_introspection_c,
         .rosidl_typesupport_introspection_cpp = ros_libraries.rosidl_typesupport_introspection_cpp,
+        .rosidl_typesupport_fastrtps_c = ros_libraries.rosidl_typesupport_fastrtps_c,
+        .rosidl_typesupport_fastrtps_cpp = ros_libraries.rosidl_typesupport_fastrtps_cpp,
         .rcutils = ros_libraries.rcutils,
+        .fastcdr = fastcdr,
     };
     const rosidl_generator_build_deps = RosidlGenerator.BuildDeps{
         .python = python,
@@ -663,6 +721,8 @@ pub fn build(b: *std.Build) void {
         .rosidl_typesupport_cpp = python_libraries.rosidl_typesupport_cpp,
         .rosidl_typesupport_introspection_c = python_libraries.rosidl_typesupport_introspection_c,
         .rosidl_typesupport_introspection_cpp = python_libraries.rosidl_typesupport_introspection_cpp,
+        .rosidl_typesupport_fastrtps_c = python_libraries.rosidl_typesupport_fastrtps_c,
+        .rosidl_typesupport_fastrtps_cpp = python_libraries.rosidl_typesupport_fastrtps_cpp,
         .type_description_generator = rosidl_artifacts.type_description_generator,
         .adapter_generator = rosidl_artifacts.adapter_generator,
         .code_generator = rosidl_artifacts.code_generator,
@@ -827,9 +887,9 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(cyclonedds);
 
     if (enable_shm) {
-        // Iceoryx RouDi (Routing and Discovery) only exists with shared-memory support
-        const iox_roudi = cyclonedds_dep.artifact("iox-roudi");
-        b.installArtifact(iox_roudi);
+        // // Iceoryx RouDi (Routing and Discovery) only exists with shared-memory support
+        // const iox_roudi = cyclonedds_dep.artifact("iox-roudi");
+        // b.installArtifact(iox_roudi);
     }
 
     ros_libraries.rmw_cyclonedds_cpp = rmw_cyclonedds.buildWithArgs(b, compile_args, .{
@@ -849,14 +909,8 @@ pub fn build(b: *std.Build) void {
         .rosidl_dynamic_typesupport = ros_libraries.rosidl_dynamic_typesupport,
     });
 
-    const fastdds = b.dependency("fastdds", compile_args).artifact("fast-dds");
-    const fastcdr = b.dependency("fastcdr", compile_args).artifact("fast-cdr");
-    b.installArtifact(fastcdr);
-    b.installArtifact(fastdds);
-
     const fastrtps_libs = rmw_fastrtps.buildWithArgs(b, compile_args, .{
         .upstream = upstream_dependencies.rmw_fastrtps,
-        .rosidl_dynamic_typesupport_fastrtps_upstream = b.dependency("rosidl_dynamic_typesupport_fastrtps", .{}),
         .rosidl_typesupport_fastrtps_upstream = b.dependency("rosidl_typesupport_fastrtps", .{}),
         .rcutils = ros_libraries.rcutils,
         .tracetools = ros_libraries.tracetools,
@@ -872,13 +926,13 @@ pub fn build(b: *std.Build) void {
         .rosidl_typesupport_introspection_cpp = ros_libraries.rosidl_typesupport_introspection_cpp,
         .rosidl_typesupport_interface = ros_libraries.rosidl_typesupport_interface,
         .rosidl_dynamic_typesupport = ros_libraries.rosidl_dynamic_typesupport,
+        .rosidl_dynamic_typesupport_fastrtps = ros_libraries.rosidl_dynamic_typesupport_fastrtps,
+        .rosidl_typesupport_fastrtps_c = ros_libraries.rosidl_typesupport_fastrtps_c,
+        .rosidl_typesupport_fastrtps_cpp = ros_libraries.rosidl_typesupport_fastrtps_cpp,
     });
     ros_libraries.rmw_fastrtps_cpp = fastrtps_libs.rmw_fastrtps;
-    ros_libraries.rmw_fastrtps_dynamic_cpp = fastrtps_libs.rmw_fastrtps_dynamic;
+    // ros_libraries.rmw_fastrtps_dynamic_cpp = fastrtps_libs.rmw_fastrtps_dynamic;
     ros_libraries.rmw_fastrtps_shared_cpp = fastrtps_libs.rmw_fastrtps_shared;
-    ros_libraries.rosidl_dynamic_typesupport_fastrtps = fastrtps_libs.rosidl_dynamic_typesupport_fastrtps;
-    ros_libraries.rosidl_typesupport_fastrtps_c = fastrtps_libs.rosidl_typesupport_fastrtps_c;
-    ros_libraries.rosidl_typesupport_fastrtps_cpp = fastrtps_libs.rosidl_typesupport_fastrtps_cpp;
 
     const zenoh_artifacts = rmw_zenoh.buildWithArgs(b, compile_args, .{
         .upstream = upstream_dependencies.rmw_zenoh,
@@ -887,16 +941,16 @@ pub fn build(b: *std.Build) void {
         .rcpputils = ros_libraries.rcpputils,
         .rcutils = ros_libraries.rcutils,
         .rmw = ros_libraries.rmw,
-        .rosidl_typesupport_fastrtps_c = ros_libraries.rosidl_typesupport_fastrtps_c,
-        .rosidl_typesupport_fastrtps_cpp = ros_libraries.rosidl_typesupport_fastrtps_cpp,
         .tracetools = ros_libraries.tracetools,
         .zenohc_library_path = "/home/jcrabill/.local/lib/x86_64-linux-musl/",
         .zenohc_include_path = "/home/jcrabill/.local/include/x86_64-linux-musl/",
         .rosidl_runtime_c = ros_libraries.rosidl_runtime_c,
         .rosidl_runtime_cpp = ros_libraries.rosidl_runtime_cpp,
+        .rosidl_typesupport_interface = ros_libraries.rosidl_typesupport_interface,
         .rosidl_typesupport_introspection_c = ros_libraries.rosidl_typesupport_introspection_c,
         .rosidl_typesupport_introspection_cpp = ros_libraries.rosidl_typesupport_introspection_cpp,
-        .rosidl_typesupport_interface = ros_libraries.rosidl_typesupport_interface,
+        .rosidl_typesupport_fastrtps_c = ros_libraries.rosidl_typesupport_fastrtps_c,
+        .rosidl_typesupport_fastrtps_cpp = ros_libraries.rosidl_typesupport_fastrtps_cpp,
         .rosidl_dynamic_typesupport = ros_libraries.rosidl_dynamic_typesupport,
     });
     ros_libraries.rmw_zenoh_cpp = zenoh_artifacts.rmw_zenoh_cpp;
@@ -1109,4 +1163,22 @@ pub fn build(b: *std.Build) void {
     }, compile_args);
     ros_libraries.camera_calibration_parsers = camera_info_libs.camera_calibration_parsers;
     ros_libraries.camera_info_manager = camera_info_libs.camera_info_manager;
+
+    //////////////////////////////////////////////////////////////////////////////////////
+    // ROS / Ament Installation Configuration
+    //////////////////////////////////////////////////////////////////////////////////////
+
+    // Already have utils.addRosPackage() use above; those setup the files needed for the ROS environment
+    // Create a local_setup.sh file that exports AMENT_PREFIX_PATH=<install_dir>
+    const local_setup_sh = b.addWriteFiles();
+    const local_setup_sh_path = local_setup_sh.add("local_setup.sh",
+        \\#!/bin/bash
+        \\export ZIGROS_INSTALL_ROOT=$(dirname $(realpath ${BASH_SOURCE[0]}))
+        \\export AMENT_PREFIX_PATH=${ZIGROS_INSTALL_ROOT}
+        \\export PATH=${PATH}:${ZIGROS_INSTALL_ROOT}/bin/
+        \\export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${ZIGROS_INSTALL_ROOT}/lib/
+        \\
+    );
+    const install_local_setup_sh = b.addInstallFileWithDir(local_setup_sh_path, .prefix, "local_setup.sh");
+    b.getInstallStep().dependOn(&install_local_setup_sh.step);
 }

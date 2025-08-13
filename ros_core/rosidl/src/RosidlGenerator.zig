@@ -55,6 +55,19 @@ const RosidlTypesupportIntrospectionCpp = CodeGenerator(
     &.{"{s}/{s}/detail/{s}__type_support.cpp"},
 );
 
+const RosidlTypesupportFastrtpsC = CodeGenerator(
+    .c,
+    .h,
+    // &.{"{s}/{s}/detail/dds_fastrtps/{s}__type_support.c"},
+    &.{"{s}/{s}/detail/{s}__type_support_c.cpp"},
+);
+
+const RosidlTypesupportFastrtpsCpp = CodeGenerator(
+    .cpp,
+    .h,
+    &.{"{s}/{s}/detail/dds_fastrtps/{s}__type_support.cpp"},
+);
+
 pub const Interface = struct {
     share: LazyPath,
     /// Some interfaces also have C/C++ headers associated with them that might be needed downstream
@@ -65,38 +78,53 @@ pub const Interface = struct {
     typesupport_cpp: *Compile,
     typesupport_introspection_c: *Compile,
     typesupport_introspection_cpp: *Compile,
+    // TODO: Have a list of C and CPP typesupport libs for RMW's that can be
+    // registered by the RMW's builder rather than hard-coded here?
+    typesupport_fastrtps_c: *Compile,
+    typesupport_fastrtps_cpp: *Compile,
 
+    /// Link the 'target' to this interface's libraries
     pub fn link(self: Interface, target: *Compile) void {
         self.linkC(target);
         self.linkCpp(target);
     }
 
-    // Link against only the c libraries. In theory useful for rcl only builds
+    // Link 'target' against only the c libraries. In theory useful for rcl only builds
     // though all rmw implementations require c++ so in practice not that useful
     pub fn linkC(self: Interface, target: *Compile) void {
         target.linkLibrary(self.interface_c);
         target.linkLibrary(self.typesupport_c);
         target.linkLibrary(self.typesupport_introspection_c);
-        // target.installLibraryHeaders(self.interface_c);
-        // target.installLibraryHeaders(self.typesupport_c);
-        // target.installLibraryHeaders(self.typesupport_introspection_c);
+        // TODO: might not want to direclty link this, since RMW will call dlopen()?
+        target.linkLibrary(self.typesupport_fastrtps_c);
         if (self.include_dir) |dir| {
             target.addIncludePath(dir);
         }
     }
 
-    // Note this function should only be used if linkC has been called previously on the same module,
-    // otherwise the standard link function should be used
-    // use the normal public link function for general c++ lingking
+    // Note this function should only be used if linkC has been called previously
+    // on the same module, otherwise the standard link function should be used.
+    // Use the normal public link function for general c++ lingking
     pub fn linkCpp(self: Interface, target: *Compile) void {
         target.addIncludePath(self.interface_cpp);
         target.linkLibrary(self.typesupport_cpp);
         target.linkLibrary(self.typesupport_introspection_cpp);
-        // target.installLibraryHeaders(self.typesupport_cpp);
-        // target.installLibraryHeaders(self.typesupport_introspection_cpp);
+        // TODO: might not want to direclty link this, since RMW will call dlopen()?
+        target.linkLibrary(self.typesupport_fastrtps_cpp);
         if (self.include_dir) |dir| {
             target.addIncludePath(dir);
         }
+    }
+
+    /// Install all libraries from this Interface
+    pub fn installArtifacts(self: *const Interface, b: *std.Build) void {
+        // b.installArtifact(self.interface_c); // needed?
+        b.installArtifact(self.typesupport_c);
+        b.installArtifact(self.typesupport_cpp);
+        b.installArtifact(self.typesupport_introspection_c);
+        b.installArtifact(self.typesupport_introspection_cpp);
+        b.installArtifact(self.typesupport_fastrtps_c);
+        b.installArtifact(self.typesupport_fastrtps_cpp);
     }
 };
 
@@ -115,6 +143,8 @@ pub const BuildDeps = struct {
     rosidl_typesupport_cpp: LazyPath,
     rosidl_typesupport_introspection_c: LazyPath,
     rosidl_typesupport_introspection_cpp: LazyPath,
+    rosidl_typesupport_fastrtps_c: LazyPath,
+    rosidl_typesupport_fastrtps_cpp: LazyPath,
     type_description_generator: *Compile,
     adapter_generator: *Compile,
     code_generator: *Compile,
@@ -129,6 +159,10 @@ pub const Deps = struct {
     rosidl_typesupport_introspection_c: *Compile,
     rosidl_typesupport_introspection_cpp: *Compile,
     rcutils: *Compile,
+    // TODO: Add a way to add RMW-specific extras
+    rosidl_typesupport_fastrtps_c: *Compile,
+    rosidl_typesupport_fastrtps_cpp: *Compile,
+    fastcdr: *Compile,
 };
 
 owner: *std.Build,
@@ -145,6 +179,8 @@ typesupport_c: *RosidlTypesupportC,
 typesupport_cpp: *RosidlTypesupportCpp,
 typesupport_introspection_c: *RosidlTypesupportIntrospectionC,
 typesupport_introspection_cpp: *RosidlTypesupportIntrospectionCpp,
+typesupport_fastrtps_c: *RosidlTypesupportFastrtpsC,
+typesupport_fastrtps_cpp: *RosidlTypesupportFastrtpsCpp,
 dependency: Dependency,
 
 pub fn create(
@@ -170,6 +206,8 @@ pub fn create(
         .typesupport_cpp = undefined,
         .typesupport_introspection_c = undefined,
         .typesupport_introspection_cpp = undefined,
+        .typesupport_fastrtps_c = undefined,
+        .typesupport_fastrtps_cpp = undefined,
         .dependency = .{ .builder = b },
     };
 
@@ -244,8 +282,55 @@ pub fn create(
             .{ .lib = deps.rosidl_typesupport_introspection_c },
         },
         &.{
-            build_deps.rosidl_generator_cpp,
             build_deps.rosidl_generator_c,
+            build_deps.rosidl_generator_cpp,
+        },
+    );
+
+    to_return.typesupport_fastrtps_c = RosidlTypesupportFastrtpsC.create(
+        b,
+        package_name,
+        compile_args,
+        "rosidl_typesupport_fastrtps_c",
+        build_deps.rosidl_typesupport_fastrtps_c,
+        deps,
+        build_deps,
+        &.{
+            .{ .lib = deps.rosidl_runtime_c },
+            .{ .header_only = deps.rosidl_runtime_cpp },
+            .{ .lib = deps.fastcdr },
+            .{ .lib = deps.rosidl_typesupport_cpp },
+            .{ .lib = deps.rosidl_typesupport_fastrtps_c },
+            .{ .lib = deps.rosidl_typesupport_fastrtps_cpp },
+            .{ .lib = to_return.generator_c.artifact },
+        },
+        &.{
+            build_deps.rosidl_generator_c,
+            build_deps.rosidl_generator_cpp,
+        },
+    );
+
+    to_return.typesupport_fastrtps_cpp = RosidlTypesupportFastrtpsCpp.create(
+        b,
+        package_name,
+        compile_args,
+        "rosidl_typesupport_fastrtps_cpp",
+        build_deps.rosidl_typesupport_fastrtps_cpp,
+        deps,
+        build_deps,
+        &.{
+            .{ .header_only = deps.rosidl_runtime_cpp },
+            .{ .header_only = to_return.generator_cpp.artifact.getDirectory() },
+            .{ .lib = to_return.generator_c.artifact },
+            .{ .lib = deps.rosidl_runtime_c },
+            .{ .lib = deps.rosidl_typesupport_cpp },
+            .{ .lib = deps.fastcdr },
+            .{ .lib = deps.rosidl_typesupport_fastrtps_c },
+            .{ .lib = deps.rosidl_typesupport_fastrtps_cpp },
+        },
+        &.{
+            build_deps.rosidl_generator_c,
+            build_deps.rosidl_generator_cpp,
         },
     );
 
@@ -268,11 +353,18 @@ pub fn create(
         &.{build_deps.rosidl_generator_c},
     );
 
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+    // TODO: add typesupport_fastrtps_c, typesupport_fastrtps_cpp to 'to_return' and create
+    // new CodeGenerator structs for it.
+    // May want to create a wrapper/helper for adding additional, RMW-specific typesupports
+    // outside of this rosidl package (since all downstream RMW's will depend on the libs here).
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+
     // The type supports normally come from the ament index. Search for
     // `ament_index_register_resource("rosidl_typesupport_c`) on github in ros to get a list
     // For now we only support the standard dynamic typesupport_introspection versions
     to_return.typesupport_c.generator.addArg(
-        "-A--typesupports rosidl_typesupport_introspection_c", // rosidl_typesupport_fastrtps_c
+        "-A--typesupports rosidl_typesupport_introspection_c rosidl_typesupport_fastrtps_c",
     );
 
     to_return.typesupport_cpp = RosidlTypesupportCpp.create(
@@ -301,7 +393,7 @@ pub fn create(
     // `ament_index_register_resource("rosidl_typesupport_c`) on github in ros to get a list
     // For now we only support the standard dynamic typesupport_introspection versions
     to_return.typesupport_cpp.generator.addArg(
-        "-A--typesupports rosidl_typesupport_introspection_cpp", // rosidl_typesupport_fastrtps_cpp
+        "-A--typesupports rosidl_typesupport_introspection_cpp rosidl_typesupport_fastrtps_cpp",
     );
 
     to_return.artifacts = .{
@@ -312,6 +404,8 @@ pub fn create(
         .typesupport_cpp = to_return.typesupport_cpp.artifact,
         .typesupport_introspection_c = to_return.typesupport_introspection_c.artifact,
         .typesupport_introspection_cpp = to_return.typesupport_introspection_cpp.artifact,
+        .typesupport_fastrtps_c = to_return.typesupport_fastrtps_c.artifact,
+        .typesupport_fastrtps_cpp = to_return.typesupport_fastrtps_cpp.artifact,
     };
 
     return to_return;
@@ -384,20 +478,37 @@ pub fn addInterfaces(
             self.type_description.output.path(self.owner, type_description),
         );
 
+        self.typesupport_fastrtps_c.addInterface(base_path, file);
+        self.typesupport_fastrtps_c.addIdlTuple(idl, self.adapter.output);
+        self.typesupport_fastrtps_c.addTypeDescription(
+            idl,
+            self.type_description.output.path(self.owner, type_description),
+        );
+
+        self.typesupport_fastrtps_cpp.addInterface(base_path, file);
+        self.typesupport_fastrtps_cpp.addIdlTuple(idl, self.adapter.output);
+        self.typesupport_fastrtps_cpp.addTypeDescription(
+            idl,
+            self.type_description.output.path(self.owner, type_description),
+        );
+
         const path = base_path.path(self.owner, file);
         _ = self.share_dir.addCopyFile(path, file);
     }
 }
 
+/// Add an Interface as a dependency for this RosidlGenerator
 pub fn addDependency(self: *RosidlGenerator, name: []const u8, dependency: Interface) void {
     self.type_description.addIncludePath(name, dependency.share);
 
     dependency.linkC(self.generator_c.artifact);
     dependency.linkC(self.typesupport_c.artifact);
     dependency.linkC(self.typesupport_introspection_c.artifact);
+    dependency.linkC(self.typesupport_fastrtps_c.artifact);
 
     dependency.link(self.typesupport_cpp.artifact);
     dependency.link(self.typesupport_introspection_cpp.artifact);
+    dependency.link(self.typesupport_fastrtps_cpp.artifact);
 }
 
 const PythonArguments = union(enum) {
@@ -425,4 +536,6 @@ pub fn installArtifacts(self: *RosidlGenerator) void {
     b.installArtifact(self.typesupport_cpp.artifact);
     b.installArtifact(self.typesupport_introspection_c.artifact);
     b.installArtifact(self.typesupport_introspection_cpp.artifact);
+    b.installArtifact(self.typesupport_fastrtps_c.artifact);
+    b.installArtifact(self.typesupport_fastrtps_cpp.artifact);
 }

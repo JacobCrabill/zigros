@@ -83,7 +83,6 @@
         .rosidl_typesupport = .{
             .url = "https://github.com/ros2/rosidl_typesupport/archive/tags/3.2.2.tar.gz", // Jazzy
             .hash = "N-V-__8AAC7sAwAhp8j24Ym-mlRXjmhBdjJAYFw1r1v5B-91",
-            //.path = "../rosidl_typesupport",
         },
         .rosidl_dynamic_typesupport = .{
             .url = "https://github.com/ros2/rosidl_dynamic_typesupport/archive/tags/0.1.2.tar.gz", // Jazzy
@@ -166,7 +165,6 @@
         .rmw_fastrtps = .{
             .url = "https://github.com/ros2/rmw_fastrtps/archive/tags/8.4.2.tar.gz", // Jazzy
             .hash = "N-V-__8AAJfGDwBuB8dw_dGNr54o2W69RmQ05Lc-BTdF68TM",
-            //.path = "../rmw_fastrtps",
         },
 
         // ---------------- Zenoh Libraries ----------------

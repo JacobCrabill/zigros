@@ -1,5 +1,6 @@
 const std = @import("std");
 const zigros = @import("../../zigros/zigros.zig");
+const utils = @import("../../build_utils.zig");
 
 const Dependency = std.Build.Dependency;
 const Run = std.Build.Step.Run;
@@ -11,33 +12,6 @@ const PythonDep = zigros.PythonDep;
 
 // To access modules at build time in other packages, they must be included here in the build file
 pub const RosidlGenerator = @import("src/RosidlGenerator.zig");
-
-// Adds a named write file and install step using the given name and path.
-// Optionally include a binary directory as well
-fn exportPythonLibrary(
-    b: *std.Build,
-    name: []const u8,
-    source_path: std.Build.LazyPath,
-    bin_path: ?std.Build.LazyPath,
-) *std.Build.Step.WriteFile {
-    var write_file = b.addNamedWriteFiles(name);
-
-    _ = write_file.addCopyDirectory(source_path, "", .{ .include_extensions = &.{ ".py", ".em", ".in", ".json", ".lark" } });
-
-    if (bin_path) |bin| {
-        _ = write_file.addCopyDirectory(bin, "bin", .{});
-    }
-
-    var install_step = b.addInstallDirectory(.{
-        .source_dir = write_file.getDirectory(),
-        .install_dir = .{ .custom = "python" },
-        .install_subdir = name,
-    });
-    install_step.step.dependOn(&write_file.step);
-    b.getInstallStep().dependOn(&install_step.step);
-
-    return write_file;
-}
 
 pub const Deps = struct {
     rosidl_upstream: *Dependency,
@@ -68,10 +42,10 @@ pub const Artifacts = struct {
     rosidl_generator_cpp_py: LazyPath,
     rosidl_generator_type_description_py: LazyPath,
     rosidl_parser_py: LazyPath,
-    rosidl_typesupport_introspection_c_py: LazyPath,
-    rosidl_typesupport_introspection_cpp_py: LazyPath,
     rosidl_typesupport_c_py: LazyPath,
     rosidl_typesupport_cpp_py: LazyPath,
+    rosidl_typesupport_introspection_c_py: LazyPath,
+    rosidl_typesupport_introspection_cpp_py: LazyPath,
     type_description_generator: *Compile,
     adapter_generator: *Compile,
     code_generator: *Compile,
@@ -248,41 +222,41 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     b.installArtifact(rosidl_typesupport_introspection_cpp);
 
     // Export python libraries as named write files
-    const rosidl_adapter_py = exportPythonLibrary(b, "rosidl_adapter", upstream.path("rosidl_adapter"), null);
-    const rosidl_cli_py = exportPythonLibrary(b, "rosidl_cli", upstream.path("rosidl_cli"), null);
-    const rosidl_pycommon_py = exportPythonLibrary(b, "rosidl_pycommon", upstream.path("rosidl_pycommon"), null);
+    const rosidl_adapter_py = utils.exportPythonLibrary(b, "rosidl_adapter", upstream.path("rosidl_adapter"), null);
+    const rosidl_cli_py = utils.exportPythonLibrary(b, "rosidl_cli", upstream.path("rosidl_cli"), null);
+    const rosidl_pycommon_py = utils.exportPythonLibrary(b, "rosidl_pycommon", upstream.path("rosidl_pycommon"), null);
 
-    const rosidl_generator_c_py = exportPythonLibrary(
+    const rosidl_generator_c_py = utils.exportPythonLibrary(
         b,
         "rosidl_generator_c",
         upstream.path("rosidl_generator_c"),
         upstream.path("rosidl_generator_c/bin"),
     );
-    const rosidl_generator_cpp_py = exportPythonLibrary(
+    const rosidl_generator_cpp_py = utils.exportPythonLibrary(
         b,
         "rosidl_generator_cpp",
         upstream.path("rosidl_generator_cpp"),
         upstream.path("rosidl_generator_cpp/bin"),
     );
-    const rosidl_generator_type_description_py = exportPythonLibrary(
+    const rosidl_generator_type_description_py = utils.exportPythonLibrary(
         b,
         "rosidl_generator_type_description",
         upstream.path("rosidl_generator_type_description"),
         upstream.path("rosidl_generator_type_description/bin"),
     );
-    const rosidl_parser_py = exportPythonLibrary(
+    const rosidl_parser_py = utils.exportPythonLibrary(
         b,
         "rosidl_parser",
         upstream.path("rosidl_parser"),
         upstream.path("rosidl_parser/bin"),
     );
-    const rosidl_typesupport_introspection_c_py = exportPythonLibrary(
+    const rosidl_typesupport_introspection_c_py = utils.exportPythonLibrary(
         b,
         "rosidl_typesupport_introspection_c",
         upstream.path("rosidl_typesupport_introspection_c"),
         upstream.path("rosidl_typesupport_introspection_c/bin"),
     );
-    const rosidl_typesupport_introspection_cpp_py = exportPythonLibrary(
+    const rosidl_typesupport_introspection_cpp_py = utils.exportPythonLibrary(
         b,
         "rosidl_typesupport_introspection_cpp",
         upstream.path("rosidl_typesupport_introspection_cpp"),
@@ -405,13 +379,13 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
 
     b.installArtifact(rosidl_typesupport_cpp);
 
-    const rosidl_typesupport_c_py = exportPythonLibrary(
+    const rosidl_typesupport_c_py = utils.exportPythonLibrary(
         b,
         "rosidl_typesupport_c",
         typesupport_upstream.path("rosidl_typesupport_c"),
         typesupport_upstream.path("rosidl_typesupport_c/bin"),
     );
-    const rosidl_typesupport_cpp_py = exportPythonLibrary(
+    const rosidl_typesupport_cpp_py = utils.exportPythonLibrary(
         b,
         "rosidl_typesupport_cpp",
         typesupport_upstream.path("rosidl_typesupport_cpp"),

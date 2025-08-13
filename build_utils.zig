@@ -161,3 +161,30 @@ pub fn iterateMessages(b: *std.Build, path: []const u8) ![]const []const u8 {
 
     return try msgs.toOwnedSlice();
 }
+
+/// Adds a named write file and install step using the given name and path.
+/// Optionally include a binary directory as well.
+pub fn exportPythonLibrary(
+    b: *std.Build,
+    name: []const u8,
+    source_path: std.Build.LazyPath,
+    bin_path: ?std.Build.LazyPath,
+) *std.Build.Step.WriteFile {
+    var write_file = b.addNamedWriteFiles(name);
+
+    _ = write_file.addCopyDirectory(source_path, "", .{ .include_extensions = &.{ ".py", ".em", ".in", ".json", ".lark" } });
+
+    if (bin_path) |bin| {
+        _ = write_file.addCopyDirectory(bin, "bin", .{});
+    }
+
+    var install_step = b.addInstallDirectory(.{
+        .source_dir = write_file.getDirectory(),
+        .install_dir = .{ .custom = "python" },
+        .install_subdir = name,
+    });
+    install_step.step.dependOn(&write_file.step);
+    b.getInstallStep().dependOn(&install_step.step);
+
+    return write_file;
+}

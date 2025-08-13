@@ -111,7 +111,12 @@ pub const VisibilityControlType = enum {
     hpp,
 };
 
-// source template must accept three strings in the order "package", "type (msg/srv/action)", "name"
+/// Returns a struct that generates C or C++ code from ROS IDL file templates and builds a library from it.
+///
+/// @param code_type: What kind of code is being generated: C files, C++ files, or header files.
+/// @param visibility_control: Optionally generate a GNU visibility header (C or C++)
+/// @param source_templates: A list of format strings which must each accept the following 3
+///        string arguments, in order: "package", "type (msg/srv/action)", "name".
 pub fn CodeGenerator(
     comptime code_type: CodeType,
     comptime visibility_control: ?VisibilityControlType,
@@ -231,22 +236,26 @@ pub fn CodeGenerator(
 
             if (visibility_control) |control_type| {
                 to_return.visibility_control_header = b.addConfigHeader(
-                    .{ .style = .{
-                        .cmake = generator_root
-                            .path(
-                            b,
-                            std.fmt.allocPrint(
-                                b.allocator,
-                                "resource/{s}__visibility_control.{s}.in",
-                                .{ generator_name, @tagName(control_type) },
-                            ) catch @panic("OOM"),
-                        ),
-                    }, .include_path = std.fmt.allocPrint(
-                        b.allocator,
-                        "{s}/msg/{s}__visibility_control.{s}",
-                        .{ package_name, generator_name, @tagName(control_type) },
-                    ) catch @panic("OOM") },
-                    .{ .PROJECT_NAME = package_name, .PROJECT_NAME_UPPER = package_name_upper },
+                    .{
+                        .style = .{
+                            .cmake = generator_root.path(
+                                b,
+                                std.fmt.allocPrint(b.allocator, "resource/{s}__visibility_control.{s}.in", .{
+                                    generator_name,
+                                    @tagName(control_type),
+                                }) catch @panic("OOM"),
+                            ),
+                        },
+                        .include_path = std.fmt.allocPrint(
+                            b.allocator,
+                            "{s}/msg/{s}__visibility_control.{s}",
+                            .{ package_name, generator_name, @tagName(control_type) },
+                        ) catch @panic("OOM"),
+                    },
+                    .{
+                        .PROJECT_NAME = package_name,
+                        .PROJECT_NAME_UPPER = package_name_upper,
+                    },
                 );
 
                 // TODO this feels like a bug? the visibility control header should automatically depend on the lazy path if its a generated path?
@@ -262,7 +271,12 @@ pub fn CodeGenerator(
                             .optimize = compile_args.optimize,
                             .pic = if (compile_args.linkage == .dynamic) true else null,
                         }),
-                        .linkage = compile_args.linkage,
+                        // TODO: Configure based on the RMW implementation.
+                        // CycloneDDS can use static linking to only the typesupport_introspection_c/cpp libs;
+                        // however, FastRTPS needs both a wrapper library (dynamic_typesupport_fastrtps) and
+                        // an impl library (typesupport_fastrtps_c/cpp), both of which get accessed via dlopen().
+                        .linkage = .dynamic,
+                        // .linkage = compile_args.linkage,
                     });
 
                     if (compile_args.optimize == .ReleaseSmall and compile_args.linkage == .static) {
@@ -294,7 +308,10 @@ pub fn CodeGenerator(
                         .{ package_name, generator_name },
                     ) catch @panic("OOM"));
                     _ = to_return.artifact.addCopyDirectory(
-                        to_return.generator_output.path(b, package_name), // This is a work around for the CPP generator which seems to include the package name automatically where the c generator did not. Other generators may or may not require this extra dir, we'll see
+                        // This is a work around for the CPP generator which seems to include
+                        // the package name automatically where the c generator did not.
+                        // Other generators may or may not require this extra dir, we'll see.
+                        to_return.generator_output.path(b, package_name),
                         package_name,
                         .{ .include_extensions = &.{ ".h", ".hpp" } },
                     );

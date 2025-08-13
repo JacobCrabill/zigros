@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const zigros = @import("../../zigros/zigros.zig");
+const utils = @import("../../build_utils.zig");
 const Interface = @import("../../ros_core/rosidl/src/RosidlGenerator.zig").Interface;
 
 const Dependency = std.Build.Dependency;
@@ -11,7 +12,6 @@ const CompileArgs = zigros.CompileArgs;
 
 pub const Deps = struct {
     upstream: *Dependency,
-    rosidl_dynamic_typesupport_fastrtps_upstream: *Dependency,
     rosidl_typesupport_fastrtps_upstream: *Dependency,
     tracetools: LazyPath,
     rcutils: *Compile,
@@ -24,18 +24,18 @@ pub const Deps = struct {
     rosidl_runtime_c: *Compile,
     rosidl_typesupport_introspection_c: *Compile,
     rosidl_typesupport_introspection_cpp: *Compile,
+    rosidl_typesupport_fastrtps_c: *Compile,
+    rosidl_typesupport_fastrtps_cpp: *Compile,
     rosidl_dynamic_typesupport: *Compile,
+    rosidl_dynamic_typesupport_fastrtps: *Compile,
     rosidl_typesupport_interface: LazyPath,
     rosidl_runtime_cpp: LazyPath,
 };
 
 pub const Artifacts = struct {
-    rosidl_dynamic_typesupport_fastrtps: *Compile,
-    rosidl_typesupport_fastrtps_c: *Compile,
-    rosidl_typesupport_fastrtps_cpp: *Compile,
     rmw_fastrtps_shared: *Compile,
     rmw_fastrtps: *Compile,
-    rmw_fastrtps_dynamic: *Compile,
+    // rmw_fastrtps_dynamic: *Compile,
 };
 
 pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
@@ -48,91 +48,6 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
         .link_libcpp = true,
         .pic = true,
     };
-
-    const typesupport_fastrtps_upstream = deps.rosidl_typesupport_fastrtps_upstream;
-
-    // FastRTPS TypeSupport - C
-    var rosidl_typesupport_fastrtps_c = b.addLibrary(.{
-        .name = "rosidl_typesupport_fastrtps_c",
-        .root_module = b.createModule(std_mod_options),
-        .linkage = linkage,
-    });
-
-    rosidl_typesupport_fastrtps_c.addCSourceFiles(.{
-        .root = typesupport_fastrtps_upstream.path("rosidl_typesupport_fastrtps_c/src"),
-        .files = &.{ "identifier.cpp", "wstring_conversion.cpp" },
-        .flags = &.{ "--std=c++17", "-Wall", "-Wextra", "-Wpedantic", "-frtti" },
-    });
-    rosidl_typesupport_fastrtps_c.addIncludePath(typesupport_fastrtps_upstream.path("rosidl_typesupport_fastrtps_c/include"));
-    rosidl_typesupport_fastrtps_c.installHeadersDirectory(typesupport_fastrtps_upstream.path("rosidl_typesupport_fastrtps_c/include"), "", .{
-        .include_extensions = &.{ ".h", ".hpp" },
-    });
-    rosidl_typesupport_fastrtps_c.root_module.linkLibrary(deps.fastcdr);
-    rosidl_typesupport_fastrtps_c.root_module.linkLibrary(deps.rosidl_runtime_c);
-
-    b.installArtifact(rosidl_typesupport_fastrtps_c);
-
-    // FastRTPS TypeSupport - C++
-    var rosidl_typesupport_fastrtps_cpp = b.addLibrary(.{
-        .name = "rosidl_typesupport_fastrtps_cpp",
-        .root_module = b.createModule(std_mod_options),
-        .linkage = linkage,
-        // .linkage = .dynamic, // FastRTPS calls dlopen() on this file; it HAS to be a .so file
-    });
-
-    rosidl_typesupport_fastrtps_cpp.addCSourceFiles(.{
-        .root = typesupport_fastrtps_upstream.path("rosidl_typesupport_fastrtps_cpp/src"),
-        .files = &.{ "identifier.cpp", "wstring_conversion.cpp" },
-        .flags = &.{ "--std=c++17", "-Wall", "-Wextra", "-Wpedantic", "-frtti" },
-    });
-    rosidl_typesupport_fastrtps_cpp.addIncludePath(typesupport_fastrtps_upstream.path("rosidl_typesupport_fastrtps_cpp/include"));
-    rosidl_typesupport_fastrtps_cpp.installHeadersDirectory(typesupport_fastrtps_upstream.path("rosidl_typesupport_fastrtps_cpp/include"), "", .{
-        .include_extensions = &.{ ".h", ".hpp" },
-    });
-    rosidl_typesupport_fastrtps_cpp.root_module.linkLibrary(deps.rmw);
-    rosidl_typesupport_fastrtps_cpp.root_module.linkLibrary(deps.fastcdr);
-    rosidl_typesupport_fastrtps_cpp.root_module.linkLibrary(deps.rosidl_runtime_c);
-
-    b.installArtifact(rosidl_typesupport_fastrtps_cpp);
-
-    // rosidl_dynamic_typesupport_fastrtps
-    const dynamic_typesupport_fastrtps_upstream = deps.rosidl_dynamic_typesupport_fastrtps_upstream;
-
-    var rosidl_dynamic_typesupport_fastrtps = b.addLibrary(.{
-        .name = "rosidl_dynamic_typesupport_fastrtps",
-        .root_module = b.createModule(std_mod_options),
-        .linkage = linkage,
-    });
-
-    if (args.optimize == .ReleaseSmall and linkage == .static) {
-        rosidl_dynamic_typesupport_fastrtps.link_function_sections = true;
-        rosidl_dynamic_typesupport_fastrtps.link_data_sections = true;
-    }
-
-    rosidl_dynamic_typesupport_fastrtps.root_module.linkLibrary(rosidl_typesupport_fastrtps_c);
-    rosidl_dynamic_typesupport_fastrtps.root_module.linkLibrary(rosidl_typesupport_fastrtps_cpp);
-    zigros.linkDependencyStruct(rosidl_dynamic_typesupport_fastrtps, deps, .cpp);
-
-    rosidl_dynamic_typesupport_fastrtps.addCSourceFiles(.{
-        .root = dynamic_typesupport_fastrtps_upstream.path(""),
-        .files = &.{
-            "src/detail/fastrtps_dynamic_data.cpp",
-            "src/detail/fastrtps_dynamic_type.cpp",
-            "src/detail/fastrtps_serialization_support.cpp",
-            "src/detail/utils.cpp",
-            "src/identifier.cpp",
-            "src/serialization_support.cpp",
-        },
-        .flags = &.{
-            "--std=c++17",
-            //"-fvisibility=hidden",
-            "-frtti",
-        },
-    });
-    rosidl_dynamic_typesupport_fastrtps.addIncludePath(dynamic_typesupport_fastrtps_upstream.path("include"));
-    rosidl_dynamic_typesupport_fastrtps.installHeadersDirectory(dynamic_typesupport_fastrtps_upstream.path("include"), "", .{});
-
-    b.installArtifact(rosidl_dynamic_typesupport_fastrtps);
 
     // ---- Core FastRTPS Middleware -------------------------------------------
 
@@ -160,7 +75,6 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
     rmw_fastrtps_shared.addIncludePath(upstream.path("rmw_fastrtps_shared_cpp/include"));
     rmw_fastrtps_shared.installHeadersDirectory(upstream.path("rmw_fastrtps_shared_cpp/include"), "", .{ .include_extensions = &.{ ".h", ".hpp" } });
 
-    rmw_fastrtps_shared.root_module.linkLibrary(rosidl_dynamic_typesupport_fastrtps);
     zigros.linkDependencyStruct(rmw_fastrtps_shared, deps, .cpp);
 
     b.installArtifact(rmw_fastrtps_shared);
@@ -192,57 +106,51 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
     rmw_fastrtps.addIncludePath(upstream.path("rmw_fastrtps_cpp/include"));
     rmw_fastrtps.installHeadersDirectory(upstream.path("rmw_fastrtps_cpp/include"), "", .{ .include_extensions = &.{ ".h", ".hpp" } });
 
-    rmw_fastrtps.root_module.linkLibrary(rosidl_dynamic_typesupport_fastrtps);
-    rmw_fastrtps.root_module.linkLibrary(rosidl_typesupport_fastrtps_c);
-    rmw_fastrtps.root_module.linkLibrary(rosidl_typesupport_fastrtps_cpp);
     rmw_fastrtps.root_module.linkLibrary(rmw_fastrtps_shared);
     zigros.linkDependencyStruct(rmw_fastrtps, deps, .cpp);
 
     b.installArtifact(rmw_fastrtps);
 
-    // ---- RMW FastRTPS Dynamic -------------------------------------------------------
-    // This variant has only a single typesupport library, and so is more compatible with ZigROS.
+    // // ---- RMW FastRTPS Dynamic -------------------------------------------------------
+    // // This variant has only a single typesupport library, and so is more compatible with ZigROS.
 
-    const rmw_fastrtps_dynamic = b.addLibrary(.{
-        .name = "rmw_fastrtps_dynamic_cpp",
-        .root_module = b.createModule(std_mod_options),
-        .linkage = linkage,
-    });
+    // const rmw_fastrtps_dynamic = b.addLibrary(.{
+    //     .name = "rmw_fastrtps_dynamic_cpp",
+    //     .root_module = b.createModule(std_mod_options),
+    //     .linkage = linkage,
+    // });
 
-    rmw_fastrtps_dynamic.addCSourceFiles(.{
-        .root = upstream.path("rmw_fastrtps_dynamic_cpp/src"),
-        .files = rmw_fastrtps_dynamic_files,
-        .flags = &.{
-            "--std=c++17",
-            "-Wall",
-            "-Wextra",
-            "-Wpedantic",
-            "-Wthread-safety",
-            "-Wno-deprecated-declarations",
-            "-Wno-switch-bool",
-            "-Wno-unknown-pragmas",
-            "-frtti",
-        },
-    });
+    // rmw_fastrtps_dynamic.addCSourceFiles(.{
+    //     .root = upstream.path("rmw_fastrtps_dynamic_cpp/src"),
+    //     .files = rmw_fastrtps_dynamic_files,
+    //     .flags = &.{
+    //         "--std=c++17",
+    //         "-Wall",
+    //         "-Wextra",
+    //         "-Wpedantic",
+    //         "-Wthread-safety",
+    //         "-Wno-deprecated-declarations",
+    //         "-Wno-switch-bool",
+    //         "-Wno-unknown-pragmas",
+    //         "-frtti",
+    //     },
+    // });
 
-    rmw_fastrtps_dynamic.addIncludePath(upstream.path("rmw_fastrtps_dynamic_cpp/include"));
-    rmw_fastrtps_dynamic.installHeadersDirectory(upstream.path("rmw_fastrtps_dynamic_cpp/include"), "", .{ .include_extensions = &.{ ".h", ".hpp" } });
+    // rmw_fastrtps_dynamic.addIncludePath(upstream.path("rmw_fastrtps_dynamic_cpp/include"));
+    // rmw_fastrtps_dynamic.installHeadersDirectory(upstream.path("rmw_fastrtps_dynamic_cpp/include"), "", .{ .include_extensions = &.{ ".h", ".hpp" } });
 
-    // rmw_fastrtps_dynamic.root_module.linkLibrary(rosidl_dynamic_typesupport_fastrtps);
-    // rmw_fastrtps_dynamic.root_module.linkLibrary(rosidl_typesupport_fastrtps_c);
-    // rmw_fastrtps_dynamic.root_module.linkLibrary(rosidl_typesupport_fastrtps_cpp);
-    rmw_fastrtps_dynamic.root_module.linkLibrary(rmw_fastrtps_shared);
-    zigros.linkDependencyStruct(rmw_fastrtps_dynamic, deps, .cpp);
+    // // rmw_fastrtps_dynamic.root_module.linkLibrary(rosidl_dynamic_typesupport_fastrtps);
+    // // rmw_fastrtps_dynamic.root_module.linkLibrary(rosidl_typesupport_fastrtps_c);
+    // // rmw_fastrtps_dynamic.root_module.linkLibrary(rosidl_typesupport_fastrtps_cpp);
+    // rmw_fastrtps_dynamic.root_module.linkLibrary(rmw_fastrtps_shared);
+    // zigros.linkDependencyStruct(rmw_fastrtps_dynamic, deps, .cpp);
 
-    b.installArtifact(rmw_fastrtps_dynamic);
+    // b.installArtifact(rmw_fastrtps_dynamic);
 
     return .{
-        .rosidl_dynamic_typesupport_fastrtps = rosidl_dynamic_typesupport_fastrtps,
-        .rosidl_typesupport_fastrtps_c = rosidl_typesupport_fastrtps_c,
-        .rosidl_typesupport_fastrtps_cpp = rosidl_typesupport_fastrtps_cpp,
         .rmw_fastrtps_shared = rmw_fastrtps_shared,
         .rmw_fastrtps = rmw_fastrtps,
-        .rmw_fastrtps_dynamic = rmw_fastrtps_dynamic,
+        // .rmw_fastrtps_dynamic = rmw_fastrtps_dynamic,
     };
 }
 
