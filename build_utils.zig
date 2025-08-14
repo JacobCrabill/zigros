@@ -62,7 +62,7 @@ pub fn installLaunchFiles(
         .source_dir = b.path(launch_src_dir),
         .install_dir = .prefix,
         .install_subdir = b.fmt("launch/{s}", .{launch_dest_subdir}),
-        .include_extensions = extensions orelse &.{".launch.py"},
+        .include_extensions = extensions orelse &.{ ".launch.py", ".sh" },
     });
 }
 
