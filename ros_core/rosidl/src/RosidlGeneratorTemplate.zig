@@ -276,8 +276,7 @@ pub fn CodeGenerator(
                         // CycloneDDS can use static linking to only the typesupport_introspection_c/cpp libs;
                         // however, FastRTPS needs both a wrapper library (dynamic_typesupport_fastrtps) and
                         // an impl library (typesupport_fastrtps_c/cpp), both of which get accessed via dlopen().
-                        .linkage = .dynamic,
-                        // .linkage = compile_args.linkage,
+                        .linkage = compile_args.linkage,
                     });
 
                     if (compile_args.optimize == .ReleaseSmall and compile_args.linkage == .static) {

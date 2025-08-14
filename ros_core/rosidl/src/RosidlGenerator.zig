@@ -97,6 +97,7 @@ pub const Interface = struct {
         target.linkLibrary(self.typesupport_introspection_c);
         // TODO: might not want to direclty link this, since RMW will call dlopen()?
         target.linkLibrary(self.typesupport_fastrtps_c);
+        // target.addIncludePath(self.typesupport_fastrtps_c.getEmittedIncludeTree());
         if (self.include_dir) |dir| {
             target.addIncludePath(dir);
         }
@@ -111,6 +112,7 @@ pub const Interface = struct {
         target.linkLibrary(self.typesupport_introspection_cpp);
         // TODO: might not want to direclty link this, since RMW will call dlopen()?
         target.linkLibrary(self.typesupport_fastrtps_cpp);
+        // target.addIncludePath(self.typesupport_fastrtps_cpp.getEmittedIncludeTree());
         if (self.include_dir) |dir| {
             target.addIncludePath(dir);
         }
@@ -211,6 +213,18 @@ pub fn create(
         .dependency = .{ .builder = b },
     };
 
+    const static_args = CompileArgs{
+        .target = compile_args.target,
+        .optimize = compile_args.optimize,
+        .linkage = compile_args.linkage, //.static,
+    };
+
+    const dynamic_args = CompileArgs{
+        .target = compile_args.target,
+        .optimize = compile_args.optimize,
+        .linkage = .dynamic,
+    };
+
     to_return.adapter = RosidlAdapter.create(b, build_deps, package_name);
     _ = to_return.share_dir.addCopyDirectory(
         to_return.adapter.output,
@@ -228,7 +242,7 @@ pub fn create(
     to_return.generator_c = RosidlGeneratorC.create(
         b,
         package_name,
-        compile_args,
+        static_args,
         "rosidl_generator_c",
         build_deps.rosidl_generator_c,
         deps,
@@ -239,7 +253,7 @@ pub fn create(
     to_return.generator_cpp = RosidlGeneratorCpp.create(
         b,
         package_name,
-        compile_args,
+        static_args,
         "rosidl_generator_cpp",
         build_deps.rosidl_generator_cpp,
         deps,
@@ -251,7 +265,7 @@ pub fn create(
     to_return.typesupport_introspection_c = RosidlTypesupportIntrospectionC.create(
         b,
         package_name,
-        compile_args,
+        dynamic_args,
         "rosidl_typesupport_introspection_c",
         build_deps.rosidl_typesupport_introspection_c,
         deps,
@@ -267,7 +281,7 @@ pub fn create(
     to_return.typesupport_introspection_cpp = RosidlTypesupportIntrospectionCpp.create(
         b,
         package_name,
-        compile_args,
+        dynamic_args,
         "rosidl_typesupport_introspection_cpp",
         build_deps.rosidl_typesupport_introspection_cpp,
         deps,
@@ -290,7 +304,7 @@ pub fn create(
     to_return.typesupport_fastrtps_c = RosidlTypesupportFastrtpsC.create(
         b,
         package_name,
-        compile_args,
+        dynamic_args,
         "rosidl_typesupport_fastrtps_c",
         build_deps.rosidl_typesupport_fastrtps_c,
         deps,
@@ -313,7 +327,7 @@ pub fn create(
     to_return.typesupport_fastrtps_cpp = RosidlTypesupportFastrtpsCpp.create(
         b,
         package_name,
-        compile_args,
+        dynamic_args,
         "rosidl_typesupport_fastrtps_cpp",
         build_deps.rosidl_typesupport_fastrtps_cpp,
         deps,
@@ -337,7 +351,7 @@ pub fn create(
     to_return.typesupport_c = RosidlTypesupportC.create(
         b,
         package_name,
-        compile_args,
+        static_args,
         "rosidl_typesupport_c",
         build_deps.rosidl_typesupport_c,
         deps,
@@ -354,10 +368,12 @@ pub fn create(
     );
 
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
-    // TODO: add typesupport_fastrtps_c, typesupport_fastrtps_cpp to 'to_return' and create
-    // new CodeGenerator structs for it.
-    // May want to create a wrapper/helper for adding additional, RMW-specific typesupports
-    // outside of this rosidl package (since all downstream RMW's will depend on the libs here).
+    // TODO: Enable individual typesupports to be added (or not) based on the chosen RMW.
+    // This includes linking the required typesupport libraries, and _only_ the required
+    // typesupport libraries.
+    // Will likely need to create a somewhat generic TypeSupport wrapper that contains one
+    // or more RosidlGenerator's to generate its library(s), that then gets added to each
+    // high-level "Interface" like 'std_msgs'.
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 
     // The type supports normally come from the ament index. Search for
@@ -370,7 +386,7 @@ pub fn create(
     to_return.typesupport_cpp = RosidlTypesupportCpp.create(
         b,
         package_name,
-        compile_args,
+        static_args,
         "rosidl_typesupport_cpp",
         build_deps.rosidl_typesupport_cpp,
         deps,

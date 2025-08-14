@@ -159,8 +159,8 @@
             .hash = "zig_fastdds-2.14.4-8klu5l9EAACFX5Tz0ZJv7eXTBKUveipsLYLLg7azprVo",
         },
         .fastcdr = .{
-            .url = "https://github.com/JacobCrabill/zig-Fast-CDR/archive/ef20d049e2f86dcf5dfe7616b066c6e738c43809.tar.gz",
-            .hash = "zig_fastcdr-2.3.0-5tEjoEAKAABOQ72Spj9w0-r52F6OAWD5WWtN82yNS9Cs",
+            .url = "https://github.com/JacobCrabill/zig-Fast-CDR/archive/5b38e52625203e4ffb3b4de298fbc1a46dda8d1a.tar.gz",
+            .hash = "zig_fastcdr-2.3.0-5tEjoGIKAABXFzprY8p9miSz2kDkKW-80aOz2DZ_2Tpk",
         },
         .rmw_fastrtps = .{
             .url = "https://github.com/ros2/rmw_fastrtps/archive/tags/8.4.2.tar.gz", // Jazzy
