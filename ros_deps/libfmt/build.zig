@@ -20,6 +20,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
         .link_libcpp = true,
+        .pic = true,
     });
     mod.addIncludePath(upstream.path("include/"));
     mod.addCSourceFiles(.{

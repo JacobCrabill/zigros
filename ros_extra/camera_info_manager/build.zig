@@ -45,6 +45,7 @@ pub fn buildWithArgs(b: *std.Build, deps: Deps, opts: zigros.CompileArgs) Artifa
         .optimize = opts.optimize,
         .link_libc = true,
         .link_libcpp = true,
+        .pic = true,
     };
 
     const camera_calibration_parsers = b.addLibrary(.{

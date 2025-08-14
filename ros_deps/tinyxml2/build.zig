@@ -14,6 +14,7 @@ pub fn buildWithArgs(b: *std.Build, opts: CompileArgs) *Compile {
         .optimize = opts.optimize,
         .link_libc = true,
         .link_libcpp = true,
+        .pic = true,
     };
 
     const tinyxml2 = b.addModule("tinyxml2", std_module_opts);

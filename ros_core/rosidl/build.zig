@@ -59,6 +59,13 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
 
     const upstream = deps.rosidl_upstream;
 
+    const std_module_opts: std.Build.Module.CreateOptions = .{
+        .target = args.target,
+        .optimize = args.optimize,
+        // .pic = if (linkage == .dynamic) true else null,
+        .pic = true,
+    };
+
     var rosidl_typesupport_interface = b.addNamedWriteFiles("rosidl_typesupport_interface");
     _ = rosidl_typesupport_interface.addCopyDirectory(upstream.path("rosidl_typesupport_interface/include"), "", .{});
 
@@ -72,11 +79,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
 
     var rosidl_runtime_c = b.addLibrary(.{
         .name = "rosidl_runtime_c",
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = optimize,
-            .pic = if (linkage == .dynamic) true else null,
-        }),
+        .root_module = b.createModule(std_module_opts),
         .linkage = linkage,
     });
 
@@ -140,11 +143,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
 
     var rosidl_typesupport_introspection_c = b.addLibrary(.{
         .name = "rosidl_typesupport_introspection_c",
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = optimize,
-            .pic = if (linkage == .dynamic) true else null,
-        }),
+        .root_module = b.createModule(std_module_opts),
         .linkage = linkage,
     });
 
@@ -179,11 +178,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
 
     var rosidl_typesupport_introspection_cpp = b.addLibrary(.{
         .name = "rosidl_typesupport_introspection_cpp",
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = optimize,
-            .pic = if (linkage == .dynamic) true else null,
-        }),
+        .root_module = b.createModule(std_module_opts),
         .linkage = linkage,
     });
 
@@ -268,11 +263,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
 
     var rosidl_typesupport_c = b.addLibrary(.{
         .name = "rosidl_typesupport_c",
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = optimize,
-            .pic = if (linkage == .dynamic) true else null,
-        }),
+        .root_module = b.createModule(std_module_opts),
         .linkage = linkage,
     });
 
@@ -327,11 +318,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
 
     var rosidl_typesupport_cpp = b.addLibrary(.{
         .name = "rosidl_typesupport_cpp",
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = optimize,
-            .pic = if (linkage == .dynamic) true else null,
-        }),
+        .root_module = b.createModule(std_module_opts),
         .linkage = linkage,
     });
 
@@ -397,11 +384,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
 
     var rosidl_dynamic_typesupport = b.addLibrary(.{
         .name = "rosidl_dynamic_typesupport",
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = optimize,
-            .pic = if (linkage == .dynamic) true else null,
-        }),
+        .root_module = b.createModule(std_module_opts),
         .linkage = linkage,
     });
 

@@ -15,6 +15,7 @@ pub fn buildWithArgs(b: *std.Build, opts: zigros.CompileArgs) *Compile {
         .optimize = opts.optimize,
         .link_libc = true,
         .link_libcpp = true,
+        .pic = true,
     };
 
     const geographic = b.addLibrary(.{

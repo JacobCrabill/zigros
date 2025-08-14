@@ -35,6 +35,8 @@ const tf2 = @import("ros_extra/tf2/build.zig");
 
 pub const RosidlGenerator = @import("ros_core/rosidl/src/RosidlGenerator.zig");
 
+pub const utils = @import("build_utils.zig");
+
 const LazyPath = std.Build.LazyPath;
 const Dependency = std.Build.Dependency;
 const Compile = std.Build.Step.Compile;

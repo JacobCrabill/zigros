@@ -269,7 +269,8 @@ pub fn CodeGenerator(
                         .root_module = b.createModule(.{
                             .target = compile_args.target,
                             .optimize = compile_args.optimize,
-                            .pic = if (compile_args.linkage == .dynamic) true else null,
+                            // .pic = if (compile_args.linkage == .dynamic) true else null,
+                            .pic = true,
                         }),
                         // TODO: Configure based on the RMW implementation.
                         // CycloneDDS can use static linking to only the typesupport_introspection_c/cpp libs;

@@ -1,6 +1,6 @@
 const std = @import("std");
 const zr = @import("zigros");
-const utils = @import("build_utils.zig");
+const utils = zr.utils;
 
 pub const std_options: std.Options = .{
     // Set the log level to info; options are debug, info, warn, err
@@ -48,9 +48,10 @@ pub fn build(b: *std.Build) !void {
         .name = "ros2_cli",
         .target = build_opts.target,
         .optimize = build_opts.optimize,
-        .use_llvm = false,
+        .use_llvm = true,
         // .use_lld = true,
-        .strip = false,
+        // .strip = false,
+        .pic = true,
     });
     ros2_cli.addCSourceFiles(.{
         .root = upstream.path("dynmsg_demo/src"),
@@ -66,6 +67,7 @@ pub fn build(b: *std.Build) !void {
     zigros.linkLoggerSpd(ros2_cli);
     utils.linkRmw(ros2_cli, &zigros, rmw);
 
+    // Properly installing libzenohc is still a TODO
     // HACK - why is the library path getting dropped...?
     ros2_cli.addIncludePath(.{ .cwd_relative = "/home/jcrabill/.local/include/x86_64-linux-musl/" });
     ros2_cli.addLibraryPath(.{ .cwd_relative = "/home/jcrabill/.local/lib/x86_64-linux-musl/" });
@@ -81,13 +83,13 @@ pub fn build(b: *std.Build) !void {
                 else => {},
             }
         }
-        // inline for (@typeInfo(@TypeOf(zigros.ros_libraries)).@"struct".fields) |field| {
-        //     std.debug.print("library: {s}\n", .{field.name});
-        //     if (field.type == *Compile) {
-        //         b.installArtifact(@field(zigros.ros_libraries, field.name));
-        //     }
-        // }
     }
 
     b.installArtifact(ros2_cli);
+
+    //////////////////////////////////////////////////////////////////////////////////////
+    // ROS / Ament Installation Configuration
+    //////////////////////////////////////////////////////////////////////////////////////
+
+    utils.writeLocalSetupSh(b, rmw);
 }

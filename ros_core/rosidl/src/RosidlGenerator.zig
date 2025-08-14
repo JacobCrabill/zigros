@@ -118,7 +118,7 @@ pub const Interface = struct {
 
     /// Install all libraries from this Interface
     pub fn installArtifacts(self: *const Interface, b: *std.Build) void {
-        // b.installArtifact(self.interface_c); // needed?
+        b.installArtifact(self.interface_c);
         b.installArtifact(self.typesupport_c);
         b.installArtifact(self.typesupport_cpp);
         b.installArtifact(self.typesupport_introspection_c);

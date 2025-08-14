@@ -16,6 +16,7 @@ pub fn getLibraries(b: *std.Build, opts: utils.BuildOpts) GTestLibs {
         .optimize = opts.optimize,
         .link_libc = true,
         .link_libcpp = true,
+        .pic = true,
     };
 
     // GTest Library

@@ -77,6 +77,13 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
 
     const upstream = deps.upstream;
 
+    const std_module_opts: std.Build.Module.CreateOptions = .{
+        .target = target,
+        .optimize = optimize,
+        //.pic = if (linkage == .dynamic) true else null,
+        .pic = true,
+    };
+
     const logger_command =
         \\import sys
         \\for arg in sys.argv:
@@ -93,11 +100,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
 
     var rclcpp = b.addLibrary(.{
         .name = "rclcpp",
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = optimize,
-            .pic = if (linkage == .dynamic) true else null,
-        }),
+        .root_module = b.createModule(std_module_opts),
         .linkage = linkage,
     });
 
@@ -307,11 +310,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     // Actions
     var rclcpp_action = b.addLibrary(.{
         .name = "rclcpp_action",
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = optimize,
-            .pic = if (linkage == .dynamic) true else null,
-        }),
+        .root_module = b.createModule(std_module_opts),
         .linkage = linkage,
     });
 
@@ -351,11 +350,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     // Components
     var rclcpp_components = b.addLibrary(.{
         .name = "rclcpp_components",
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = optimize,
-            .pic = if (linkage == .dynamic) true else null,
-        }),
+        .root_module = b.createModule(std_module_opts),
         .linkage = linkage,
     });
 
@@ -389,11 +384,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     // Lifecycle
     var rclcpp_lifecycle = b.addLibrary(.{
         .name = "rclcpp_lifecycle",
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = optimize,
-            .pic = if (linkage == .dynamic) true else null,
-        }),
+        .root_module = b.createModule(std_module_opts),
         .linkage = linkage,
     });
 

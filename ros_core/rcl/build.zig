@@ -35,19 +35,18 @@ pub const Artifacts = struct {
 };
 
 pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
-    const target = args.target;
-    const optimize = args.optimize;
     const linkage = args.linkage;
 
     const upstream = deps.upstream;
+    const std_module_opts: std.Build.Module.CreateOptions = .{
+        .target = args.target,
+        .optimize = args.optimize,
+        .pic = true,
+    };
 
     var yaml_param_parser = b.addLibrary(.{
         .name = "rcl_yaml_param_parser",
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = optimize,
-            .pic = if (linkage == .dynamic) true else null,
-        }),
+        .root_module = b.createModule(std_module_opts),
         .linkage = linkage,
     });
 
@@ -84,11 +83,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
 
     var rcl = b.addLibrary(.{
         .name = "rcl",
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = optimize,
-            .pic = if (linkage == .dynamic) true else null,
-        }),
+        .root_module = b.createModule(std_module_opts),
         .linkage = linkage,
     });
 
@@ -153,11 +148,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
 
     var rcl_action = b.addLibrary(.{
         .name = "rcl_action",
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = optimize,
-            .pic = if (linkage == .dynamic) true else null,
-        }),
+        .root_module = b.createModule(std_module_opts),
         .linkage = linkage,
     });
 
@@ -195,11 +186,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
 
     var rcl_lifecycle = b.addLibrary(.{
         .name = "rcl_lifecycle",
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = optimize,
-            .pic = if (linkage == .dynamic) true else null,
-        }),
+        .root_module = b.createModule(std_module_opts),
         .linkage = linkage,
     });
 

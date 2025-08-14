@@ -23,6 +23,7 @@ pub fn buildWithArgs(b: *std.Build, deps: Deps, args: zigros.CompileArgs) *Compi
         .optimize = args.optimize,
         .link_libc = true,
         .link_libcpp = true,
+        .pic = true,
     };
 
     // Dynamic Message Introspection Library

@@ -19,20 +19,22 @@ pub const Artifacts = struct {
 };
 
 pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
-    const target = args.target;
     const optimize = args.optimize;
     const linkage = args.linkage;
 
     const upstream = deps.upstream;
     const spdlog = deps.spdlog;
 
+    const std_module_opts: std.Build.Module.CreateOptions = .{
+        .target = args.target,
+        .optimize = args.optimize,
+        //.pic = if (linkage == .dynamic) true else null,
+        .pic = true,
+    };
+
     var rcl_logging_interface = b.addLibrary(.{
         .name = "rcl_logging_interface",
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = optimize,
-            .pic = if (linkage == .dynamic) true else null,
-        }),
+        .root_module = b.createModule(std_module_opts),
         .linkage = linkage,
     });
 
@@ -65,11 +67,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
 
     var rcl_logging_spdlog = b.addLibrary(.{
         .name = "rcl_logging_spdlog",
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = optimize,
-            .pic = if (linkage == .dynamic) true else null,
-        }),
+        .root_module = b.createModule(std_module_opts),
         .linkage = linkage,
     });
 

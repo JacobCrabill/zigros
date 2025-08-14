@@ -11,6 +11,7 @@ pub fn buildWithArgs(b: *std.Build, args: zigros.CompileArgs) *Step.Compile {
         .optimize = args.optimize,
         .link_libc = true,
         .link_libcpp = true,
+        .pic = true,
     };
 
     const console_bridge = b.addModule("console_bridge", std_module_opts);

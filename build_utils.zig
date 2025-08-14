@@ -75,6 +75,30 @@ pub fn writeAmentIndexFile(b: *std.Build, pkg_name: []const u8) void {
     b.getInstallStep().dependOn(&install_file.step);
 }
 
+/// Write a 'local_setup.sh' file to the install directory.
+/// It will export the AMENT_PREFIX_PATH, PATH, and LD_LIBRARY_PATH necessary to run installed ROS nodes,
+/// assuming all libraries were installed, and all "packages" were setup with an Ament index file.
+pub fn writeLocalSetupSh(b: *std.Build, rmw: RmwKind) void {
+    const local_setup_sh = b.addWriteFiles();
+    const main_contents: []const u8 =
+        \\#!/bin/bash
+        \\export ZIGROS_INSTALL_ROOT=$(dirname $(realpath ${BASH_SOURCE[0]}))
+        \\export AMENT_PREFIX_PATH=${ZIGROS_INSTALL_ROOT}
+        \\export PATH=${PATH}:${ZIGROS_INSTALL_ROOT}/bin/
+        \\export LD_LIBRARY_PATH=${ZIGROS_INSTALL_ROOT}/lib/
+    ;
+    const rmw_export = switch (rmw) {
+        .cyclonedds => "export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp",
+        .fastrtps => "export RMW_IMPLEMENTATION=rmw_fastrtps_cpp",
+        .zenoh => "export RMW_IMPLEMENTATION=rmw_zenoh_cpp",
+    };
+    const contents = b.fmt("{s}\n{s}\n", .{ main_contents, rmw_export });
+
+    const local_setup_sh_path = local_setup_sh.add("local_setup.sh", contents);
+    const install_local_setup_sh = b.addInstallFileWithDir(local_setup_sh_path, .prefix, "local_setup.sh");
+    b.getInstallStep().dependOn(&install_local_setup_sh.step);
+}
+
 pub const RosPackageOptions = struct {
     /// Name of the package
     pkg_name: []const u8,

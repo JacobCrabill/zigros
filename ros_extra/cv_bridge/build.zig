@@ -10,6 +10,7 @@ pub fn getLibrary(b: *std.Build, zigros: *const zr.ZigRos, opts: utils.BuildOpts
         .optimize = opts.optimize,
         .link_libc = true,
         .link_libcpp = true,
+        .pic = true,
     };
 
     const vision_opencv = b.dependency("vision_opencv", opts);

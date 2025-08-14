@@ -19,6 +19,7 @@ pub fn buildWithArgs(b: *std.Build, dependencies: DependentLibs, opts: CompileAr
         .optimize = opts.optimize,
         .link_libc = true,
         .link_libcpp = true,
+        .pic = true,
     };
 
     const pluginlib = b.addLibrary(.{

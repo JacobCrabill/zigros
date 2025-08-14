@@ -37,7 +37,8 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) *Compile {
         .root_module = b.createModule(.{
             .target = target,
             .optimize = optimize,
-            .pic = if (linkage == .dynamic) true else null,
+            //.pic = if (linkage == .dynamic) true else null,
+            .pic = true,
         }),
         .linkage = linkage,
     });

@@ -30,6 +30,7 @@ pub fn buildWithArgs(
         .optimize = args.optimize,
         .link_libc = true,
         .link_libcpp = true,
+        .pic = true,
     };
 
     const image_transport = b.addLibrary(.{
