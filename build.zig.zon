@@ -145,8 +145,8 @@
 
         // ---------------- Eclipse Cyclone DDS Libraries ----------------
         .cyclonedds = .{
-            .url = "https://github.com/JacobCrabill/zig-cyclonedds/archive/164d4d74f8d5f73246e4bfb4ff792502f233f2e5.tar.gz",
-            .hash = "cyclonedds-0.10.5-VJFfyyhAAAA3PuJOcm4lE4WwvX5RzlBAml6q8fAYSkyy",
+            .url = "https://github.com/JacobCrabill/zig-cyclonedds/archive/42783049b9d840b37b404a2907c3a11e8436964a.tar.gz",
+            .hash = "cyclonedds-0.10.5-VJFfy0FAAAC3FrQTvw7PqE1OIJIzkym1KvDvgJZjZY3T",
         },
         .rmw_cyclonedds = .{
             .url = "https://github.com/ros2/rmw_cyclonedds/archive/tags/2.2.2.tar.gz", // Jazzy
@@ -195,8 +195,8 @@
             .hash = "N-V-__8AAE5eAwADWOAp4ZJRGBSxOtEgfmxsBbzQ7Va7A7HQ",
         },
         // .uxr_agent = .{
-        //     .url = "https://github.com/JacobCrabill/zig-Micro-XRCE-DDS-Agent/archive/d7bde7845674e8475f353e499f8dd4a6e32e7fa9.tar.gz",
-        //     .hash = "Micro_XRCE_DDS_Agent-3.0.1-gbyEDh0hAAA-T3V7YrrYg-nhcYpqKvnFzWluV-Ycgy3f",
+        //     .url = "https://github.com/JacobCrabill/zig-Micro-XRCE-DDS-Agent/archive/557221a66f729b7b781aea221a12aa4b24e2e5c3.tar.gz",
+        //     .hash = "Micro_XRCE_DDS_Agent-3.0.1-gbyEDvIgAADpyjGc0t6daf2pW7bBzvsmWKIWN6GF_PO7",
         // },
 
         // ---------------- ROS Interfaces ----------------
