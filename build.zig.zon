@@ -270,6 +270,10 @@
             .url = "https://github.com/foxglove/mcap/archive/refs/tags/releases/cpp/v1.3.1.tar.gz",
             .hash = "N-V-__8AAMBiRwAODjSSV9DC74bG3tiwRrt99JJCGIksc6I8",
         },
+        .keyboard = .{
+            .url = "https://github.com/ros-tooling/keyboard_handler/archive/9139839d4ad40eb3e0ce9dcddc2937cec35cd2a2.tar.gz", // Jazzy
+            .hash = "N-V-__8AAA4OAgCIszozR0__N9uPSUgQE0vgEkAyenotBfpp",
+        },
 
         // ---------------- Zig Packages ----------------
         .flags = .{

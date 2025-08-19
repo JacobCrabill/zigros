@@ -34,6 +34,14 @@ pub const Deps = struct {
     type_description_interfaces: RosidlGenerator.Interface,
 };
 
+pub const RosbagTransportDeps = struct {
+    keyboard_handler: *Compile,
+    rcl_interfaces: RosidlGenerator.Interface,
+    rclcpp_components: *Compile,
+    statistics_msgs: RosidlGenerator.Interface,
+    rosgraph_msgs: RosidlGenerator.Interface,
+};
+
 pub const McapDeps = struct {
     zstd: *Compile,
     lz4: *Compile,
@@ -44,11 +52,12 @@ pub const Artifacts = struct {
     rosbag2_storage_mcap: *Compile,
     rosbag2_cpp: *Compile,
     rosbag2_compression: *Compile,
+    rosbag2_transport: *Compile,
     rosbag2_interfaces: RosidlGenerator.Interface,
     mcap: *Compile,
 };
 
-pub fn buildWithArgs(b: *std.Build, msg_deps: MsgDeps, deps: Deps, mcap_deps: McapDeps, opts: zigros.CompileArgs) Artifacts {
+pub fn buildWithArgs(b: *std.Build, msg_deps: MsgDeps, deps: Deps, mcap_deps: McapDeps, transport_deps: RosbagTransportDeps, opts: zigros.CompileArgs) Artifacts {
     const upstream = b.dependency("rosbag2", opts); // todo: take as input
 
     const std_module_opts: std.Build.Module.CreateOptions = .{
@@ -297,12 +306,52 @@ pub fn buildWithArgs(b: *std.Build, msg_deps: MsgDeps, deps: Deps, mcap_deps: Mc
     );
     b.installArtifact(rosbag2_compression);
 
+    // ---- rosbag2_transport ----
+
+    const rosbag2_transport = b.addLibrary(.{
+        .name = "rosbag2_transport",
+        .root_module = b.createModule(std_module_opts),
+        .linkage = opts.linkage,
+    });
+
+    rosbag2_transport.addIncludePath(upstream.path("rosbag2_transport/include"));
+    rosbag2_transport.addCSourceFiles(.{
+        .root = upstream.path("rosbag2_transport/src/rosbag2_transport"),
+        .files = &.{
+            "bag_rewrite.cpp",
+            "player.cpp",
+            "play_options.cpp",
+            "player_service_client.cpp",
+            "reader_writer_factory.cpp",
+            "recorder.cpp",
+            "record_options.cpp",
+            "topic_filter.cpp",
+            "config_options_from_node_params.cpp",
+        },
+        .flags = &.{ "--std=c++17", "-Wall", "-Wextra", "-Wpedantic", "-Wno-deprecated" },
+    });
+
+    rosbag2_transport.linkLibrary(rosbag2_storage);
+    rosbag2_transport.linkLibrary(rosbag2_cpp);
+    rosbag2_transport.linkLibrary(rosbag2_compression);
+    rosbag2_interfaces.artifacts.link(rosbag2_transport);
+    zigros.linkDependencyStruct(rosbag2_transport, deps, .cpp);
+    zigros.linkDependencyStruct(rosbag2_transport, transport_deps, .cpp);
+
+    rosbag2_transport.installHeadersDirectory(
+        upstream.path("rosbag2_transport/include"),
+        "",
+        .{ .include_extensions = &.{ ".h", ".hpp" } },
+    );
+    b.installArtifact(rosbag2_transport);
+
     return .{
         .rosbag2_storage = rosbag2_storage,
         .rosbag2_storage_mcap = rosbag2_storage_mcap,
         .rosbag2_cpp = rosbag2_cpp,
         .rosbag2_interfaces = rosbag2_interfaces.artifacts,
         .rosbag2_compression = rosbag2_compression,
+        .rosbag2_transport = rosbag2_transport,
         .mcap = mcap_vendor,
     };
 }

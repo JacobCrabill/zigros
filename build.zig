@@ -39,6 +39,7 @@ const zstd = @import("ros_extra/zstd/build.zig");
 const rapidjson = @import("ros_extra/rapidjson/build.zig");
 const rosbag2 = @import("ros_extra/rosbag2/build.zig");
 const rosx_introspection = @import("ros_extra/rosx_introspection/build.zig");
+const keyboard = @import("ros_extra/keyboard/build.zig");
 
 pub const RosidlGenerator = @import("ros_core/rosidl/src/RosidlGenerator.zig");
 
@@ -1208,6 +1209,7 @@ pub fn build(b: *std.Build) void {
     });
     b.installArtifact(lz4.artifact("lz4"));
 
+    const keyboard_handler = keyboard.buildWithArgs(b, compile_args);
     const zstd_lib = zstd.buildWithArgs(b, compile_args);
     const rjson = rapidjson.buildWithArgs(b, compile_args);
     const rosbag_libs = rosbag2.buildWithArgs(b, .{
@@ -1236,6 +1238,12 @@ pub fn build(b: *std.Build) void {
     }, .{
         .lz4 = lz4.artifact("lz4"),
         .zstd = zstd_lib,
+    }, .{
+        .keyboard_handler = keyboard_handler,
+        .rcl_interfaces = ros_libraries.rcl_interfaces,
+        .rclcpp_components = ros_libraries.rclcpp_components,
+        .statistics_msgs = rcl_interfaces_artifacts.statistics_msgs,
+        .rosgraph_msgs = ros_libraries.rosgraph_msgs,
     }, compile_args);
 
     _ = rosx_introspection.buildWithArgs(b, .{
