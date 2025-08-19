@@ -1199,6 +1199,15 @@ pub fn build(b: *std.Build) void {
         .rosidl_typesupport_interface = ros_libraries.rosidl_typesupport_interface,
     });
 
+    const lz4 = b.dependency("lz4", .{
+        .target = compile_args.target,
+        .optimize = compile_args.optimize,
+        .linkage = compile_args.linkage,
+        .pie = true,
+        .strip = true,
+    });
+    b.installArtifact(lz4.artifact("lz4"));
+
     _ = zstd.buildWithArgs(b, compile_args);
     const rjson = rapidjson.buildWithArgs(b, compile_args);
     const rosbag_libs = rosbag2.buildWithArgs(b, .{

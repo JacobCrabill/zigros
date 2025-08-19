@@ -262,6 +262,10 @@
             .url = "https://github.com/JacobCrabill/rosx_introspection/archive/301af5783e50a92a8a6caf07d8aad1bbdf339a83.tar.gz",
             .hash = "N-V-__8AAPvvAwAgcumyy66o-Mpts0lDeMdfTWM4Mz4uZPU2",
         },
+        .lz4 = .{
+            .url = "https://github.com/allyourcodebase/lz4/archive/tags/1.10.0-5.tar.gz", // For zig 0.14
+            .hash = "lz4-1.10.0-5-ewyzw7YNAADOUkQ7M9fjW005oGzxt9b6m0uPd_kQC48z",
+        },
 
         // ---------------- Zig Packages ----------------
         .flags = .{
