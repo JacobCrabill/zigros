@@ -24,6 +24,9 @@ const rmw_zenoh = @import("ros_rmw/rmw_zenoh/build.zig");
 // const rmw_uxrce = @import("ros_rmw/rmw_microxrcedds/build.zig");
 const typesupport_fastrtps = @import("ros_rmw/typesupport_fastrtps//build.zig");
 
+// Additional, proxy RMW wrapper
+const rmw_impl = @import("ros_rmw/rmw_implementation/build.zig");
+
 const class_loader = @import("ros_deps/class_loader/build.zig");
 const console_bridge = @import("ros_deps/console_bridge/build.zig");
 const camera_info = @import("ros_extra/camera_info_manager/build.zig");
@@ -32,6 +35,9 @@ const dynmsg = @import("ros_extra/dynmsg/build.zig");
 // const image_transport = @import("ros_extra/image_transport/build.zig");
 const message_filters = @import("ros_extra/message_filters/build.zig");
 const tf2 = @import("ros_extra/tf2/build.zig");
+const zstd = @import("ros_extra/zstd/build.zig");
+const rapidjson = @import("ros_extra/rapidjson/build.zig");
+const rosbag2 = @import("ros_extra/rosbag2/build.zig");
 
 pub const RosidlGenerator = @import("ros_core/rosidl/src/RosidlGenerator.zig");
 
@@ -410,51 +416,65 @@ pub const ZigRos = struct {
         step.root_module.linkLibrary(self.ros_libraries.rclcpp_components);
         step.root_module.linkLibrary(self.ros_libraries.rclcpp_lifecycle);
         step.root_module.linkLibrary(self.ros_libraries.rcpputils);
-
-        //step.installLibraryHeaders(self.ros_libraries.rosidl_typesupport_introspection_cpp);
-        //step.installLibraryHeaders(self.ros_libraries.libstatistics_collector);
-        //step.installLibraryHeaders(self.ros_libraries.ament_index_cpp);
-        //step.installLibraryHeaders(self.ros_libraries.rclcpp);
-        //step.installLibraryHeaders(self.ros_libraries.rclcpp_action);
-        //step.installLibraryHeaders(self.ros_libraries.rclcpp_components);
-        //step.installLibraryHeaders(self.ros_libraries.rclcpp_lifecycle);
-        //step.installLibraryHeaders(self.ros_libraries.rcpputils);
     }
 
     pub fn linkTf2(self: ZigRos, step: *Compile) void {
-        step.root_module.linkLibrary(self.ros_libraries.tf2);
-        step.root_module.linkLibrary(self.ros_libraries.tf2_ros);
+        step.linkLibrary(self.ros_libraries.tf2);
+        step.linkLibrary(self.ros_libraries.tf2_ros);
         self.ros_libraries.tf2_msgs.linkCpp(step);
     }
 
     pub fn linkRmwCycloneDds(self: ZigRos, step: *Compile) void {
-        step.root_module.linkLibrary(self.ros_libraries.rmw_cyclonedds_cpp);
-        step.root_module.linkLibrary(self.ros_libraries.cyclonedds);
-        //step.installLibraryHeaders(self.ros_libraries.rmw_cyclonedds_cpp);
-        //step.installLibraryHeaders(self.ros_libraries.cyclonedds);
+        step.linkLibrary(self.ros_libraries.rmw_cyclonedds_cpp);
+        step.linkLibrary(self.ros_libraries.cyclonedds);
     }
 
     pub fn linkRmwFastRtps(self: ZigRos, step: *Compile) void {
-        // ---- Only choose one of fastrtps_cpp or fastrtps_dynamic_cpp! ----
-        step.root_module.linkLibrary(self.ros_libraries.rmw_fastrtps_cpp);
-        // step.root_module.linkLibrary(self.ros_libraries.rmw_fastrtps_dynamic_cpp);
+        if (step.kind == .exe or (step.kind == .lib and step.linkage != null and step.linkage.? == .dynamic)) {
+            // ---- Only choose one of fastrtps_cpp or fastrtps_dynamic_cpp! ----
+            step.linkLibrary(self.ros_libraries.rmw_fastrtps_cpp);
+            // step.linkLibrary(self.ros_libraries.rmw_fastrtps_dynamic_cpp);
 
-        // Always link all typesupport libraries...?
-        step.root_module.linkLibrary(self.ros_libraries.rosidl_dynamic_typesupport_fastrtps);
-        step.root_module.linkLibrary(self.ros_libraries.rosidl_typesupport_fastrtps_c);
-        step.root_module.linkLibrary(self.ros_libraries.rosidl_typesupport_fastrtps_cpp);
+            // Always link all typesupport libraries...?
+            step.linkLibrary(self.ros_libraries.rosidl_dynamic_typesupport_fastrtps);
+            step.linkLibrary(self.ros_libraries.rosidl_typesupport_fastrtps_c);
+            step.linkLibrary(self.ros_libraries.rosidl_typesupport_fastrtps_cpp);
 
-        // ---- Always link the 'shared' libraries ----
-        step.root_module.linkLibrary(self.ros_libraries.rmw_fastrtps_shared_cpp);
-        step.root_module.linkLibrary(self.ros_libraries.fastdds);
-        step.root_module.linkLibrary(self.ros_libraries.fastcdr);
+            // ---- Always link the 'shared' libraries ----
+            step.linkLibrary(self.ros_libraries.rmw_fastrtps_shared_cpp);
+            step.linkLibrary(self.ros_libraries.fastdds);
+            step.linkLibrary(self.ros_libraries.fastcdr);
+        } else {
+            // ---- Only choose one of fastrtps_cpp or fastrtps_dynamic_cpp! ----
+            step.addIncludePath(self.ros_libraries.rmw_fastrtps_cpp.getEmittedIncludeTree());
+            // step.addIncludePath(self.ros_libraries.rmw_fastrtps_dynamic_cpp.getEmittedIncludeTree());
+
+            // Always link all typesupport libraries...?
+            step.addIncludePath(self.ros_libraries.rosidl_dynamic_typesupport_fastrtps.getEmittedIncludeTree());
+            step.addIncludePath(self.ros_libraries.rosidl_typesupport_fastrtps_c.getEmittedIncludeTree());
+            step.addIncludePath(self.ros_libraries.rosidl_typesupport_fastrtps_cpp.getEmittedIncludeTree());
+
+            // ---- Always link the 'shared' libraries ----
+            step.addIncludePath(self.ros_libraries.rmw_fastrtps_shared_cpp.getEmittedIncludeTree());
+            step.addIncludePath(self.ros_libraries.fastdds.getEmittedIncludeTree());
+            step.addIncludePath(self.ros_libraries.fastcdr.getEmittedIncludeTree());
+        }
     }
 
     pub fn linkRmwZenoh(self: ZigRos, step: *Compile) void {
-        step.root_module.linkLibrary(self.ros_libraries.rmw_zenoh_cpp);
-        step.root_module.linkLibrary(self.ros_libraries.rosidl_typesupport_fastrtps_c);
-        step.root_module.linkLibrary(self.ros_libraries.rosidl_typesupport_fastrtps_cpp);
-        step.root_module.linkLibrary(self.ros_libraries.fastcdr);
+        if (step.kind == .exe) {
+            step.linkLibrary(self.ros_libraries.rmw_zenoh_cpp);
+            step.linkLibrary(self.ros_libraries.rosidl_typesupport_fastrtps_c);
+            step.linkLibrary(self.ros_libraries.rosidl_typesupport_fastrtps_cpp);
+            step.linkLibrary(self.ros_libraries.fastcdr);
+            step.linkLibrary(self.ros_libraries.fastdds);
+        } else {
+            step.addIncludePath(self.ros_libraries.rmw_zenoh_cpp.getEmittedIncludeTree());
+            step.addIncludePath(self.ros_libraries.rosidl_typesupport_fastrtps_c.getEmittedIncludeTree());
+            step.addIncludePath(self.ros_libraries.rosidl_typesupport_fastrtps_cpp.getEmittedIncludeTree());
+            step.addIncludePath(self.ros_libraries.fastcdr.getEmittedIncludeTree());
+            step.addIncludePath(self.ros_libraries.fastdds.getEmittedIncludeTree());
+        }
     }
 
     pub fn linkLoggerSpd(self: ZigRos, step: *Compile) void {
@@ -1165,6 +1185,40 @@ pub fn build(b: *std.Build) void {
     }, compile_args);
     ros_libraries.camera_calibration_parsers = camera_info_libs.camera_calibration_parsers;
     ros_libraries.camera_info_manager = camera_info_libs.camera_info_manager;
+
+    const rmw_implementation = rmw_impl.buildWithArgs(b, compile_args, .{
+        .ament_index_cpp = ros_libraries.ament_index_cpp,
+        .rcpputils = ros_libraries.rcpputils,
+        .rcutils = ros_libraries.rcutils,
+        .rmw = ros_libraries.rmw,
+        .rosidl_runtime_c = ros_libraries.rosidl_runtime_c,
+        .rosidl_dynamic_typesupport = ros_libraries.rosidl_dynamic_typesupport,
+        .rosidl_typesupport_interface = ros_libraries.rosidl_typesupport_interface,
+    });
+
+    _ = zstd.buildWithArgs(b, compile_args);
+    _ = rapidjson.buildWithArgs(b, compile_args);
+    _ = rosbag2.buildWithArgs(b, .{
+        .ament_index_cpp = ros_libraries.ament_index_cpp,
+        .pluginlib = ros_libraries.pluginlib,
+        .rclcpp = ros_libraries.rclcpp,
+        .rcpputils = ros_libraries.rcpputils,
+        .rcutils = ros_libraries.rcutils,
+        .rmw = ros_libraries.rmw,
+        .rmw_implementation = rmw_implementation,
+        .rosidl_runtime_c = ros_libraries.rosidl_runtime_c,
+        .rosidl_runtime_cpp = ros_libraries.rosidl_runtime_cpp,
+        .rosidl_typesupport_c = ros_libraries.rosidl_typesupport_c,
+        .rosidl_typesupport_cpp = ros_libraries.rosidl_typesupport_cpp,
+        .rosidl_typesupport_interface = ros_libraries.rosidl_typesupport_interface,
+        .rosidl_typesupport_introspection_c = ros_libraries.rosidl_typesupport_introspection_c,
+        .rosidl_typesupport_introspection_cpp = ros_libraries.rosidl_typesupport_introspection_cpp,
+        .tracetools = ros_libraries.tracetools,
+        .yaml_cpp = ros_libraries.yaml_cpp,
+        .builtin_interfaces = rcl_interfaces_artifacts.builtin_interfaces,
+        .service_msgs = rcl_interfaces_artifacts.service_msgs,
+        .type_description_interfaces = ros_libraries.type_description_interfaces,
+    }, compile_args);
 
     //////////////////////////////////////////////////////////////////////////////////////
     // ROS / Ament Installation Configuration

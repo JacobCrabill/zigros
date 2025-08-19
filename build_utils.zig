@@ -76,9 +76,12 @@ pub fn writeAmentIndexFile(b: *std.Build, pkg_name: []const u8) void {
 }
 
 /// Write a 'local_setup.sh' file to the install directory.
+///
 /// It will export the AMENT_PREFIX_PATH, PATH, and LD_LIBRARY_PATH necessary to run installed ROS nodes,
 /// assuming all libraries were installed, and all "packages" were setup with an Ament index file.
-pub fn writeLocalSetupSh(b: *std.Build, rmw: RmwKind) void {
+///
+/// If any "extra" contents are given, they will be added to the end of the setup script.
+pub fn writeLocalSetupSh(b: *std.Build, rmw: RmwKind, extra: []const u8) void {
     const local_setup_sh = b.addWriteFiles();
     const main_contents: []const u8 =
         \\#!/bin/bash
@@ -86,13 +89,14 @@ pub fn writeLocalSetupSh(b: *std.Build, rmw: RmwKind) void {
         \\export AMENT_PREFIX_PATH=${ZIGROS_INSTALL_ROOT}
         \\export PATH=${PATH}:${ZIGROS_INSTALL_ROOT}/bin/
         \\export LD_LIBRARY_PATH=${ZIGROS_INSTALL_ROOT}/lib/
+        \\export ROS_LOG_DIR=${ROS_LOG_DIR:-/data/logs/ros}
     ;
     const rmw_export = switch (rmw) {
         .cyclonedds => "export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp",
         .fastrtps => "export RMW_IMPLEMENTATION=rmw_fastrtps_cpp",
         .zenoh => "export RMW_IMPLEMENTATION=rmw_zenoh_cpp",
     };
-    const contents = b.fmt("{s}\n{s}\n", .{ main_contents, rmw_export });
+    const contents = b.fmt("{s}\n{s}\n{s}\n", .{ main_contents, rmw_export, extra });
 
     const local_setup_sh_path = local_setup_sh.add("local_setup.sh", contents);
     const install_local_setup_sh = b.addInstallFileWithDir(local_setup_sh_path, .prefix, "local_setup.sh");

@@ -100,6 +100,10 @@
             .url = "https://github.com/ros2/rmw/archive/tags/7.3.1.tar.gz", // Jazzy
             .hash = "N-V-__8AABvfCQCZJfSMtgjeo8B7UyDaStd7cB6RpBgIfTYh",
         },
+        .rmw_implementation = .{ // proxy RMW implementation
+            .url = "https://github.com/ros2/rmw_implementation/archive/7aeafcd862df54ad9989e6874673a9e5d0981cfc.tar.gz", // Jazzy
+            .hash = "N-V-__8AAGjKBQDvdV21L8kFYrgFTOC6512vsW9-BdM2AIEE",
+        },
         .rmw_dds_common = .{
             .url = "https://github.com/ros2/rmw_dds_common/archive/tags/3.1.0.tar.gz", // Jazzy
             .hash = "N-V-__8AAO16BADfUxPO6qaOLdnlPDIncfvA3TBiMb6sf5W6",
@@ -241,6 +245,22 @@
         .vision_opencv = .{
             .url = "https://github.com/ros-perception/vision_opencv/archive/e6b1511e89c119e60f6563e4462c6a598f61872a.tar.gz",
             .hash = "N-V-__8AAAwSBQA7nZflhA9Csh5OxrRem2XhxH3I33MyeJrM",
+        },
+        .rosbag2 = .{
+            .url = "https://github.com/ros2/rosbag2/archive/644ae393b1a7bc5546a4f65bb6b8013cc2229484.tar.gz", // jazzy
+            .hash = "N-V-__8AAGfoSAAKnf83xMVsarO89XQ-tl225ZG3pzUVZGCu",
+        },
+        .zstd = .{
+            .url = "https://github.com/facebook/zstd/archive/f8745da6ff1ad1e7bab384bd1f9d742439278e99.tar.gz", // v1.5.7
+            .hash = "N-V-__8AAPZ7fwBg4JoCzM_0o2A8wxH2hsUUeiU1iuZv53L5",
+        },
+        .rapidjson = .{
+            .url = "https://github.com/Tencent/rapidjson/archive/tags/v1.1.0.tar.gz",
+            .hash = "N-V-__8AAJNBLgCE8ApHb2EJmsHQcj2mcaxFaNScxgITE611",
+        },
+        .rosx_introspection = .{
+            .url = "https://github.com/facontidavide/rosx_introspection/archive/ad5eb6d327754b27652beb7c377d8fd5e1ca8fe2.tar.gz",
+            .hash = "N-V-__8AALTwAwA6cW38eJv2lipXW0gaCpybJp76RCcPgsMh",
         },
 
         // ---------------- Zig Packages ----------------
