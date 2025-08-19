@@ -1208,9 +1208,12 @@ pub fn build(b: *std.Build) void {
     });
     b.installArtifact(lz4.artifact("lz4"));
 
-    _ = zstd.buildWithArgs(b, compile_args);
+    const zstd_lib = zstd.buildWithArgs(b, compile_args);
     const rjson = rapidjson.buildWithArgs(b, compile_args);
     const rosbag_libs = rosbag2.buildWithArgs(b, .{
+        .rosidl_generator_build_deps = rosidl_generator_build_deps,
+        .rosidl_generator_deps = rosidl_generator_deps,
+    }, .{
         .ament_index_cpp = ros_libraries.ament_index_cpp,
         .pluginlib = ros_libraries.pluginlib,
         .rclcpp = ros_libraries.rclcpp,
@@ -1230,6 +1233,9 @@ pub fn build(b: *std.Build) void {
         .builtin_interfaces = rcl_interfaces_artifacts.builtin_interfaces,
         .service_msgs = rcl_interfaces_artifacts.service_msgs,
         .type_description_interfaces = ros_libraries.type_description_interfaces,
+    }, .{
+        .lz4 = lz4.artifact("lz4"),
+        .zstd = zstd_lib,
     }, compile_args);
 
     _ = rosx_introspection.buildWithArgs(b, .{
