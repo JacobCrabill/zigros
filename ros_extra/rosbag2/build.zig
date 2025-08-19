@@ -43,6 +43,7 @@ pub const Artifacts = struct {
     rosbag2_storage: *Compile,
     rosbag2_storage_mcap: *Compile,
     rosbag2_cpp: *Compile,
+    rosbag2_compression: *Compile,
     rosbag2_interfaces: RosidlGenerator.Interface,
     mcap: *Compile,
 };
@@ -265,11 +266,43 @@ pub fn buildWithArgs(b: *std.Build, msg_deps: MsgDeps, deps: Deps, mcap_deps: Mc
 
     rosbag2_interfaces.installArtifacts();
 
+    // ---- rosbag2_compression ----
+
+    const rosbag2_compression = b.addLibrary(.{
+        .name = "rosbag2_compression",
+        .root_module = b.createModule(std_module_opts),
+        .linkage = opts.linkage,
+    });
+
+    rosbag2_compression.addIncludePath(upstream.path("rosbag2_compression/include"));
+    rosbag2_compression.addCSourceFiles(.{
+        .root = upstream.path("rosbag2_compression/src/rosbag2_compression"),
+        .files = &.{
+            "compression_factory.cpp",
+            "compression_options.cpp",
+            "sequential_compression_reader.cpp",
+            "sequential_compression_writer.cpp",
+        },
+        .flags = &.{ "--std=c++17", "-Wall", "-Wextra", "-Wpedantic" },
+    });
+
+    rosbag2_compression.linkLibrary(rosbag2_storage);
+    rosbag2_compression.linkLibrary(rosbag2_cpp);
+    zigros.linkDependencyStruct(rosbag2_compression, deps, .cpp);
+
+    rosbag2_compression.installHeadersDirectory(
+        upstream.path("rosbag2_compression/include"),
+        "",
+        .{ .include_extensions = &.{ ".h", ".hpp" } },
+    );
+    b.installArtifact(rosbag2_compression);
+
     return .{
         .rosbag2_storage = rosbag2_storage,
         .rosbag2_storage_mcap = rosbag2_storage_mcap,
         .rosbag2_cpp = rosbag2_cpp,
         .rosbag2_interfaces = rosbag2_interfaces.artifacts,
+        .rosbag2_compression = rosbag2_compression,
         .mcap = mcap_vendor,
     };
 }
