@@ -38,6 +38,7 @@ const tf2 = @import("ros_extra/tf2/build.zig");
 const zstd = @import("ros_extra/zstd/build.zig");
 const rapidjson = @import("ros_extra/rapidjson/build.zig");
 const rosbag2 = @import("ros_extra/rosbag2/build.zig");
+const rosx_introspection = @import("ros_extra/rosx_introspection/build.zig");
 
 pub const RosidlGenerator = @import("ros_core/rosidl/src/RosidlGenerator.zig");
 
@@ -689,6 +690,8 @@ pub fn build(b: *std.Build) void {
     const fastcdr = b.dependency("fastcdr", compile_args).artifact("fast-cdr");
     b.installArtifact(fastcdr);
     b.installArtifact(fastdds);
+    ros_libraries.fastcdr = fastcdr;
+    ros_libraries.fastdds = fastdds;
 
     // Build the underlying typesupport library for FastRTPS
     // This will be used by the individual typesupport libraries for every generated interface
@@ -1197,8 +1200,8 @@ pub fn build(b: *std.Build) void {
     });
 
     _ = zstd.buildWithArgs(b, compile_args);
-    _ = rapidjson.buildWithArgs(b, compile_args);
-    _ = rosbag2.buildWithArgs(b, .{
+    const rjson = rapidjson.buildWithArgs(b, compile_args);
+    const rosbag_libs = rosbag2.buildWithArgs(b, .{
         .ament_index_cpp = ros_libraries.ament_index_cpp,
         .pluginlib = ros_libraries.pluginlib,
         .rclcpp = ros_libraries.rclcpp,
@@ -1218,6 +1221,22 @@ pub fn build(b: *std.Build) void {
         .builtin_interfaces = rcl_interfaces_artifacts.builtin_interfaces,
         .service_msgs = rcl_interfaces_artifacts.service_msgs,
         .type_description_interfaces = ros_libraries.type_description_interfaces,
+    }, compile_args);
+
+    _ = rosx_introspection.buildWithArgs(b, .{
+        .ament_index_cpp = ros_libraries.ament_index_cpp,
+        .rapidjson = rjson,
+        .rosbag2_cpp = rosbag_libs.rosbag2_cpp,
+        .rclcpp = ros_libraries.rclcpp,
+        .fastcdr = ros_libraries.fastcdr,
+        .builtin_interfaces = ros_libraries.builtin_interfaces,
+        .rcl_interfaces = ros_libraries.rcl_interfaces,
+        .service_msgs = rcl_interfaces_artifacts.service_msgs,
+        .rosidl_runtime_cpp = ros_libraries.rosidl_runtime_cpp,
+        .rosidl_typesupport_interface = ros_libraries.rosidl_typesupport_interface,
+        .type_description_interfaces = ros_libraries.type_description_interfaces,
+        .tracetools = ros_libraries.tracetools,
+        .statistics_msgs = rcl_interfaces_artifacts.statistics_msgs,
     }, compile_args);
 
     //////////////////////////////////////////////////////////////////////////////////////

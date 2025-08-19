@@ -2,16 +2,26 @@ const std = @import("std");
 
 const zigros = @import("../../zigros/zigros.zig");
 const utils = @import("../../build_utils.zig");
+const RosidlGenerator = @import("../../ros_core/rosidl/src/RosidlGenerator.zig");
 
 const Compile = std.Build.Step.Compile;
+const LazyPath = std.Build.LazyPath;
 
 pub const Deps = struct {
     ament_index_cpp: *Compile,
+    rapidjson: *Compile,
     fastcdr: *Compile,
     rclcpp: *Compile,
     // TODO
     rosbag2_cpp: *Compile,
-    // TODO: add all dependencies of dependencies
+    rosidl_runtime_cpp: LazyPath,
+    builtin_interfaces: RosidlGenerator.Interface,
+    rcl_interfaces: RosidlGenerator.Interface,
+    service_msgs: RosidlGenerator.Interface,
+    rosidl_typesupport_interface: LazyPath,
+    type_description_interfaces: RosidlGenerator.Interface,
+    tracetools: LazyPath,
+    statistics_msgs: RosidlGenerator.Interface,
 };
 
 pub fn buildWithArgs(b: *std.Build, deps: Deps, args: zigros.CompileArgs) *Compile {
@@ -60,11 +70,7 @@ pub fn buildWithArgs(b: *std.Build, deps: Deps, args: zigros.CompileArgs) *Compi
 
     zigros.linkDependencyStruct(rosx_introspection, deps, .cpp);
 
-    rosx_introspection.installHeadersDirectory(
-        upstream.path("rosx_introspection/include"),
-        "",
-        .{ .include_extensions = &.{ ".h", ".hpp" } },
-    );
+    rosx_introspection.installHeadersDirectory(upstream.path("include"), "", .{ .include_extensions = &.{ ".h", ".hpp" } });
     b.installArtifact(rosx_introspection);
 
     return rosx_introspection;
