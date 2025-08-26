@@ -8,6 +8,7 @@ pub const BuildOpts = struct {
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
     linkage: std.builtin.LinkMode,
+    strip: bool,
 };
 
 const RosIdlInterface = zig_ros.RosidlGenerator.Interface;
@@ -23,6 +24,7 @@ pub fn getInterfaces(b: *std.Build, zigros: *const ZigRos, opts: BuildOpts) Inte
         .target = opts.target,
         .optimize = opts.optimize,
         .linkage = opts.linkage,
+        .strip = opts.strip,
     };
 
     const geographic = b.dependency("geographic_info", std_dep_args);

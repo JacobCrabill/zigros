@@ -2,6 +2,7 @@ const std = @import("std");
 const zr = @import("build.zig");
 
 const Compile = std.Build.Step.Compile;
+const LazyPath = std.Build.LazyPath;
 const Target = std.Build.ResolvedTarget;
 
 /// Basic options applied to most build targets
@@ -9,6 +10,7 @@ pub const BuildOpts = struct {
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
     linkage: std.builtin.LinkMode,
+    strip: bool,
     rmw: RmwKind, // = .cyclonedds,
 };
 
@@ -75,6 +77,36 @@ pub fn writeAmentIndexFile(b: *std.Build, pkg_name: []const u8) void {
     b.getInstallStep().dependOn(&install_file.step);
 }
 
+/// Write a dummy 'package.xml' file to make Ament and ClassLoader happy.
+pub fn writeAmentPackageXml(b: *std.Build, pkg_name: []const u8) void {
+    const write_files = b.addWriteFiles();
+    const pkg_file = b.fmt("share/{s}/package.xml", .{pkg_name});
+    const content = b.fmt("<package><name>{s}</name></package>", .{pkg_name});
+    const package_wf = write_files.add("package.xml", content);
+    const install_file = b.addInstallFileWithDir(package_wf, .prefix, pkg_file);
+    b.getInstallStep().dependOn(&install_file.step);
+}
+
+/// Register a package as a plugin to another package.
+/// Creates the package file in the plugin directory pointing to the
+/// plugin_description.xml file in the package directory.
+pub fn registerPluginlibPlugin(b: *std.Build, plugin: PluginDescription) void {
+    const write_files = b.addWriteFiles();
+
+    // Create the package plugin pointer file, then install it
+    const plugin_registry_path = b.fmt("share/ament_index/resource_index/{s}__pluginlib__plugin/{s}", .{ plugin.kind, plugin.name });
+    const content = b.fmt("share/{s}/plugin_description.xml", .{plugin.name});
+    const plugin_wf = write_files.add("plugin_description.xml", content);
+
+    const install_plugin_file = b.addInstallFileWithDir(plugin_wf, .prefix, plugin_registry_path);
+    b.getInstallStep().dependOn(&install_plugin_file.step);
+
+    // Install the plugin_description.xml file to the package dir
+    const plugin_desc_path = b.fmt("share/{s}/plugin_description.xml", .{plugin.name});
+    const install_description_file = b.addInstallFileWithDir(plugin.xml, .prefix, plugin_desc_path);
+    b.getInstallStep().dependOn(&install_description_file.step);
+}
+
 /// Write a 'local_setup.sh' file to the install directory.
 ///
 /// It will export the AMENT_PREFIX_PATH, PATH, and LD_LIBRARY_PATH necessary to run installed ROS nodes,
@@ -103,20 +135,33 @@ pub fn writeLocalSetupSh(b: *std.Build, rmw: RmwKind, extra: []const u8) void {
     b.getInstallStep().dependOn(&install_local_setup_sh.step);
 }
 
+/// A description of a Pluginlib plugin
+pub const PluginDescription = struct {
+    /// The name of the package implementing the plugin
+    name: []const u8,
+    /// The name of the package defining the base plugin type
+    kind: []const u8,
+    /// The path to the plugin_description.xml file to be installed from the package
+    xml: LazyPath,
+};
+
+/// A description of a ROS package to be installed.
 pub const RosPackageOptions = struct {
-    /// Name of the package
+    /// Name of the package.
     pkg_name: []const u8,
-    /// Path to the package's root source directory (which should contain params/, launch/, etc.)
+    /// Path to the package's root source directory (which should contain params/, launch/, etc.).
     pkg_root: ?[]const u8 = null,
-    /// Destination subdirectory for the installed files (by type). Default
+    /// Destination subdirectory for the installed files (by type).
     /// If null, defaults to the package name.
     dest_subdir: ?[]const u8 = null,
-    /// Whether the params directory should be copied to the install directory
+    /// Whether the package's 'params' directory should be copied to the install directory.
     /// (At the subdirectory <install_root>/launch/<dest_subdir>)
     install_params: bool = false,
-    /// Whether the launch directory should be copied to the install directory
-    /// (At the subdirectory <install_root>/dest_subdir)
+    /// Whether the package's 'launch' directory should be copied to the install directory.
+    /// (At the subdirectory <install_root>/<dest_subdir>)
     install_launch: bool = false,
+    /// A description of the Pluginlib plugin this package implements, if applicable.
+    plugin: ?PluginDescription = null,
 };
 
 /// Add a ROS package to our installation environment.
@@ -134,6 +179,10 @@ pub fn addRosPackage(b: *std.Build, opts: RosPackageOptions) void {
         const src_dir = b.fmt("{s}/launch", .{opts.pkg_root.?});
         const dest_subdir = opts.dest_subdir orelse opts.pkg_name;
         installLaunchFiles(b, src_dir, dest_subdir, null);
+    }
+    if (opts.plugin) |plugin| {
+        writeAmentPackageXml(b, plugin.name);
+        registerPluginlibPlugin(b, plugin);
     }
 }
 
@@ -195,8 +244,8 @@ pub fn iterateMessages(b: *std.Build, path: []const u8) ![]const []const u8 {
 pub fn exportPythonLibrary(
     b: *std.Build,
     name: []const u8,
-    source_path: std.Build.LazyPath,
-    bin_path: ?std.Build.LazyPath,
+    source_path: LazyPath,
+    bin_path: ?LazyPath,
 ) *std.Build.Step.WriteFile {
     var write_file = b.addNamedWriteFiles(name);
 

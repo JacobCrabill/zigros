@@ -430,25 +430,31 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
 
     const type_description_generator = b.addExecutable(.{
         .name = "type_description_generator",
-        .target = b.graph.host, // This is only used in run artifacts, don't cross compile
-        .optimize = optimize,
-        .root_source_file = b.path("ros_core/rosidl/src/type_description_generator.zig"),
+        .root_module = b.createModule(.{
+            .target = b.graph.host, // This is only used in run artifacts, don't cross compile
+            .optimize = optimize,
+            .root_source_file = b.path("ros_core/rosidl/src/type_description_generator.zig"),
+        }),
     });
     b.installArtifact(type_description_generator);
 
     const adapter_generator = b.addExecutable(.{
         .name = "adapter_generator",
-        .target = b.graph.host, // This is only used in run artifacts, don't cross compile
-        .optimize = optimize,
-        .root_source_file = b.path("ros_core/rosidl/src/adapter_generator.zig"),
+        .root_module = b.createModule(.{
+            .target = b.graph.host, // This is only used in run artifacts, don't cross compile
+            .optimize = optimize,
+            .root_source_file = b.path("ros_core/rosidl/src/adapter_generator.zig"),
+        }),
     });
     b.installArtifact(adapter_generator);
 
     const code_generator = b.addExecutable(.{
         .name = "code_generator",
-        .target = b.graph.host, // This is only used in run artifacts, don't cross compile
-        .optimize = optimize,
-        .root_source_file = b.path("ros_core/rosidl/src/code_generator.zig"),
+        .root_module = b.createModule(.{
+            .target = b.graph.host, // This is only used in run artifacts, don't cross compile
+            .optimize = optimize,
+            .root_source_file = b.path("ros_core/rosidl/src/code_generator.zig"),
+        }),
     });
     b.installArtifact(code_generator);
 

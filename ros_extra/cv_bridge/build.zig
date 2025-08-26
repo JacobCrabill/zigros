@@ -8,6 +8,7 @@ pub fn getLibrary(b: *std.Build, zigros: *const zr.ZigRos, opts: utils.BuildOpts
     const std_module_opts: std.Build.Module.CreateOptions = .{
         .target = opts.target,
         .optimize = opts.optimize,
+        .strip = opts.strip,
         .link_libc = true,
         .link_libcpp = true,
         .pic = true,

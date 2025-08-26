@@ -158,6 +158,18 @@ pub const RosLibraries = struct {
     stereo_msgs: RosidlGenerator.Interface,
     trajectory_msgs: RosidlGenerator.Interface,
     visualization_msgs: RosidlGenerator.Interface,
+    // TODO: Split into "RosExtra" structs
+    keyboard_handler: *Compile,
+    lz4: *Compile,
+    zstd: *Compile,
+    rapidjson: *Compile,
+    rosbag2_storage: *Compile,
+    rosbag2_storage_mcap: *Compile,
+    rosbag2_cpp: *Compile,
+    rosbag2_compression: *Compile,
+    rosbag2_transport: *Compile,
+    rosbag2_interfaces: RosidlGenerator.Interface,
+    mcap: *Compile,
 };
 
 pub const PythonLibraries = struct {
@@ -340,6 +352,18 @@ pub const ZigRos = struct {
                 .stereo_msgs = extractInterface(dep, "stereo_msgs"),
                 .trajectory_msgs = extractInterface(dep, "trajectory_msgs"),
                 .visualization_msgs = extractInterface(dep, "visualization_msgs"),
+                // TODO: split into separate "RosExtra" struct
+                .keyboard_handler = dep.artifact("keyboard_handler"),
+                .rosbag2_storage = dep.artifact("rosbag2_storage"),
+                .rosbag2_storage_mcap = dep.artifact("rosbag2_storage_mcap"),
+                .rosbag2_cpp = dep.artifact("rosbag2_cpp"),
+                .rosbag2_compression = dep.artifact("rosbag2_compression"),
+                .rosbag2_transport = dep.artifact("rosbag2_transport"),
+                .rosbag2_interfaces = extractInterface(dep, "rosbag2_interfaces"),
+                .mcap = dep.artifact("mcap"),
+                .lz4 = dep.artifact("lz4"),
+                .zstd = dep.artifact("zstd"),
+                .rapidjson = dep.artifact("rapidjson"),
             },
             .python_libraries = .{
                 .empy = if (!system_python) dep.builder.lazyDependency("empy", .{}).?.path("") else null,
@@ -538,14 +562,16 @@ const system_python_exe = "python3";
 
 pub fn build(b: *std.Build) void {
     // Common compile arguments that all ROS subbuilds accept
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
+    const linkage = b.option(std.builtin.LinkMode, "linkage", "Specify static or dynamic linkage") orelse .static;
+    const strip = b.option(bool, "strip", "Strip debug info from binaries (Default: true for non-Debug builds)") orelse (optimize != .Debug);
+
     const compile_args = zigros.CompileArgs{
-        .target = b.standardTargetOptions(.{}),
-        .optimize = b.standardOptimizeOption(.{}),
-        .linkage = b.option(
-            std.builtin.LinkMode,
-            "linkage",
-            "Specify static or dynamic linkage",
-        ) orelse .static,
+        .target = target,
+        .optimize = optimize,
+        .linkage = linkage,
+        .strip = strip,
     };
 
     const system_python = b.option(
@@ -687,8 +713,13 @@ pub fn build(b: *std.Build) void {
         .rosidl_runtime_c = ros_libraries.rosidl_runtime_c,
     });
 
-    const fastdds = b.dependency("fastdds", compile_args).artifact("fast-dds");
-    const fastcdr = b.dependency("fastcdr", compile_args).artifact("fast-cdr");
+    const std_dep_args = .{
+        .target = compile_args.target,
+        .optimize = compile_args.optimize,
+        .linkage = compile_args.linkage,
+    };
+    const fastdds = b.dependency("fastdds", std_dep_args).artifact("fast-dds");
+    const fastcdr = b.dependency("fastcdr", std_dep_args).artifact("fast-cdr");
     b.installArtifact(fastcdr);
     b.installArtifact(fastdds);
     ros_libraries.fastcdr = fastcdr;
@@ -837,8 +868,13 @@ pub fn build(b: *std.Build) void {
     ros_libraries.trajectory_msgs = common_interfaces_artifacts.trajectory_msgs;
     ros_libraries.visualization_msgs = common_interfaces_artifacts.visualization_msgs;
 
-    ros_libraries.yaml = b.dependency("yaml", compile_args).artifact("yaml");
-    ros_libraries.yaml_cpp = b.dependency("yaml_cpp", compile_args).artifact("yaml-cpp");
+    ros_libraries.yaml = b.dependency("yaml", .{
+        .target = compile_args.target,
+        .optimize = compile_args.optimize,
+        .linkage = compile_args.linkage,
+        .pic = true,
+    }).artifact("yaml");
+    ros_libraries.yaml_cpp = b.dependency("yaml_cpp", std_dep_args).artifact("yaml-cpp");
     // re-install libs so we can grab it directly from the zigros dependency later
     b.installArtifact(ros_libraries.yaml);
     b.installArtifact(ros_libraries.yaml_cpp);
@@ -1208,10 +1244,15 @@ pub fn build(b: *std.Build) void {
         .strip = true,
     });
     b.installArtifact(lz4.artifact("lz4"));
+    ros_libraries.lz4 = lz4.artifact("lz4");
 
     const keyboard_handler = keyboard.buildWithArgs(b, compile_args);
-    const zstd_lib = zstd.buildWithArgs(b, compile_args);
     const rjson = rapidjson.buildWithArgs(b, compile_args);
+    const zstd_lib = zstd.buildWithArgs(b, compile_args);
+    ros_libraries.keyboard_handler = keyboard_handler;
+    ros_libraries.rapidjson = rjson;
+    ros_libraries.zstd = zstd_lib;
+
     const rosbag_libs = rosbag2.buildWithArgs(b, .{
         .rosidl_generator_build_deps = rosidl_generator_build_deps,
         .rosidl_generator_deps = rosidl_generator_deps,
@@ -1221,6 +1262,7 @@ pub fn build(b: *std.Build) void {
         .rclcpp = ros_libraries.rclcpp,
         .rcpputils = ros_libraries.rcpputils,
         .rcutils = ros_libraries.rcutils,
+        .tinyxml2 = ros_libraries.tinyxml2,
         .rmw = ros_libraries.rmw,
         .rmw_implementation = rmw_implementation,
         .rosidl_runtime_c = ros_libraries.rosidl_runtime_c,
@@ -1245,6 +1287,13 @@ pub fn build(b: *std.Build) void {
         .statistics_msgs = rcl_interfaces_artifacts.statistics_msgs,
         .rosgraph_msgs = ros_libraries.rosgraph_msgs,
     }, compile_args);
+    ros_libraries.rosbag2_storage = rosbag_libs.rosbag2_storage;
+    ros_libraries.rosbag2_storage_mcap = rosbag_libs.rosbag2_storage_mcap;
+    ros_libraries.rosbag2_cpp = rosbag_libs.rosbag2_cpp;
+    ros_libraries.rosbag2_compression = rosbag_libs.rosbag2_compression;
+    ros_libraries.rosbag2_interfaces = rosbag_libs.rosbag2_interfaces;
+    ros_libraries.rosbag2_transport = rosbag_libs.rosbag2_transport;
+    ros_libraries.mcap = rosbag_libs.mcap;
 
     _ = rosx_introspection.buildWithArgs(b, .{
         .ament_index_cpp = ros_libraries.ament_index_cpp,

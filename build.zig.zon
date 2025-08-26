@@ -57,12 +57,12 @@
 
         // ---------------- Misc. ROS Dependencies: Zig-Built ----------------
         .yaml = .{
-            .url = "https://github.com/zig-robotics/libyaml/archive/tags/0.2.5.tar.gz",
-            .hash = "yaml-0.2.5--LGJNH0IAAD6ezzyKSkd6ZY7dgS593rcMWMPsJOYdE0v",
+            .url = "https://github.com/zig-robotics/libyaml/archive/75ad7a178a1958858942a871f1c2f7b52edc1ef4.tar.gz",
+            .hash = "yaml-0.2.5--LGJNNYIAACgL4bX9hA9LNUOEHQU9K1z1nQNjev1rDvM",
         },
         .yaml_cpp = .{
-            .url = "https://github.com/JacobCrabill/zig-yaml-cpp/archive/13114e2b4c87313339154fd43fa9f31d3e3329ac.tar.gz",
-            .hash = "zig_yaml_cpp-0.2.0-BiTzHpMTAAAxZWJUWUBxxsqP6ezWFCq71rvRjDKce6WG",
+            .url = "https://github.com/JacobCrabill/zig-yaml-cpp/archive/7d18debb87bf2d14ca8d751404607a82c4867b37.tar.gz",
+            .hash = "zig_yaml_cpp-0.2.0-BiTzHoIQAAAdK92L5skbeTvFtD7tCaTgVCzW6ZAdl7RB",
         },
 
         // ---------------- Core ROS Libraries ----------------
@@ -317,17 +317,24 @@
         "ros_extra/build.zig",
         "ros_extra/dynmsg",
         "ros_extra/image_transport",
+        "ros_extra/keyboard/build.zig",
         "ros_extra/message_filters",
+        "ros_extra/rapidjson/build.zig",
+        "ros_extra/rosbag2/build.zig",
+        "ros_extra/rosx_introspection/build.zig",
         "ros_extra/tf2",
+        "ros_extra/zstd/build.zig",
         "ros_rmw/rmw/build.zig",
         "ros_rmw/rmw_cyclonedds/build.zig",
         "ros_rmw/rmw_dds_common/build.zig",
         "ros_rmw/rmw_fastrtps/build.zig",
+        "ros_rmw/rmw_implementation/build.zig",
         "ros_rmw/rmw_microxrcedds/build.zig",
         "ros_rmw/rmw_zenoh/build.zig",
         "ros_rmw/typesupport_fastrtps/build.zig",
         "zigros/zigros.zig",
         "./examples/ros2_cli/build.zig",
+
         // TODO
         // ./examples/rclcpp_example/build.zig
     },

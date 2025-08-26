@@ -18,6 +18,7 @@ pub const Deps = struct {
     rclcpp: *Compile,
     rcpputils: *Compile,
     rcutils: *Compile,
+    tinyxml2: *Compile,
     rmw: *Compile,
     rmw_implementation: *Compile, // proxy RMW implementation
     rosidl_runtime_c: *Compile,
@@ -90,7 +91,7 @@ pub fn buildWithArgs(b: *std.Build, msg_deps: MsgDeps, deps: Deps, mcap_deps: Mc
             "rosbag2_storage/storage_options.cpp",
             "rosbag2_storage/base_io_interface.cpp",
         },
-        .flags = &.{ "--std=c++17", "-Wall", "-Wextra", "-Wpedantic" },
+        .flags = &.{ "-fPIC", "--std=c++17", "-Wall", "-Wextra", "-Wpedantic", "-Wno-deprecated" },
     });
 
     // TODO: limit to only the bare necessities
@@ -144,7 +145,12 @@ pub fn buildWithArgs(b: *std.Build, msg_deps: MsgDeps, deps: Deps, mcap_deps: Mc
             "rosbag2_cpp/writer.cpp",
             "rosbag2_cpp/writers/sequential_writer.cpp",
         },
-        .flags = &.{ "--std=c++17", "-Wall", "-Wextra", "-Wpedantic", "-Wthread-safety" },
+        .flags = &.{
+            "-fPIC",           "--std=c++17",
+            "-Wall",           "-Wextra",
+            "-Wpedantic",      "-Wthread-safety",
+            "-Wno-deprecated",
+        },
     });
     rosbag2_cpp.linkLibrary(rosbag2_storage);
 
@@ -182,7 +188,7 @@ pub fn buildWithArgs(b: *std.Build, msg_deps: MsgDeps, deps: Deps, mcap_deps: Mc
     const mcap = b.dependency("mcap", .{}); // todo: take as input
 
     const mcap_vendor = b.addLibrary(.{
-        .name = "mcap_vendor",
+        .name = "mcap",
         .root_module = b.createModule(std_module_opts),
         .linkage = opts.linkage,
     });
@@ -191,7 +197,12 @@ pub fn buildWithArgs(b: *std.Build, msg_deps: MsgDeps, deps: Deps, mcap_deps: Mc
     mcap_vendor.addIncludePath(mcap.path("cpp/mcap/include"));
     mcap_vendor.addCSourceFile(.{
         .file = upstream.path("mcap_vendor/src/main.cpp"),
-        .flags = &.{ "--std=c++17", "-Wall", "-Wextra", "-Wpedantic" },
+        .flags = &.{
+            "-fPIC",                "--std=c++17",
+            "-Wall",                "-Wextra",
+            "-Wpedantic",           "-Wno-deprecated",
+            "-fvisibility=default",
+        },
     });
     mcap_vendor.linkLibrary(mcap_deps.lz4);
     mcap_vendor.linkLibrary(mcap_deps.zstd);
@@ -210,24 +221,21 @@ pub fn buildWithArgs(b: *std.Build, msg_deps: MsgDeps, deps: Deps, mcap_deps: Mc
     const rosbag2_storage_mcap = b.addLibrary(.{
         .name = "rosbag2_storage_mcap",
         .root_module = b.createModule(std_module_opts),
-        .linkage = opts.linkage,
+        // HACK: pluginlib requires this :(
+        .linkage = .dynamic, // opts.linkage,
     });
 
     rosbag2_storage_mcap.addIncludePath(upstream.path("rosbag2_storage_mcap/include"));
     rosbag2_storage_mcap.addCSourceFile(.{
         .file = upstream.path("rosbag2_storage_mcap/src/mcap_storage.cpp"),
         .flags = &.{
-            "--std=c++17",
-            "-Wall",
-            "-Wextra",
-            "-Wpedantic",
-            "-Wno-deprecated",
-            "-DROSBAG2_STORAGE_MCAP_HAS_STORAGE_OPTIONS",
-            "-DROSBAG2_STORAGE_MCAP_WRITER_CREATES_DIRECTORY",
-            "-DROSBAG2_STORAGE_MCAP_OVERRIDE_SEEK_METHOD",
-            "-DROSBAG2_STORAGE_MCAP_HAS_YAML_HPP",
-            "-DROSBAG2_STORAGE_MCAP_HAS_SET_READ_ORDER",
-            "-DROSBAG2_STORAGE_MCAP_HAS_UPDATE_METADATA",
+            "-fPIC",                                       "--std=c++17",
+            "-Wall",                                       "-Wextra",
+            "-Wpedantic",                                  "-Wno-deprecated",
+            "-DROSBAG2_STORAGE_MCAP_HAS_STORAGE_OPTIONS",  "-DROSBAG2_STORAGE_MCAP_WRITER_CREATES_DIRECTORY",
+            "-DROSBAG2_STORAGE_MCAP_OVERRIDE_SEEK_METHOD", "-DROSBAG2_STORAGE_MCAP_HAS_YAML_HPP",
+            "-DROSBAG2_STORAGE_MCAP_HAS_SET_READ_ORDER",   "-DROSBAG2_STORAGE_MCAP_HAS_UPDATE_METADATA",
+            "-fvisibility=default",
         },
     });
 
@@ -292,7 +300,11 @@ pub fn buildWithArgs(b: *std.Build, msg_deps: MsgDeps, deps: Deps, mcap_deps: Mc
             "sequential_compression_reader.cpp",
             "sequential_compression_writer.cpp",
         },
-        .flags = &.{ "--std=c++17", "-Wall", "-Wextra", "-Wpedantic" },
+        .flags = &.{
+            "-fPIC",      "--std=c++17",
+            "-Wall",      "-Wextra",
+            "-Wpedantic", "-Wno-deprecated",
+        },
     });
 
     rosbag2_compression.linkLibrary(rosbag2_storage);
@@ -328,7 +340,7 @@ pub fn buildWithArgs(b: *std.Build, msg_deps: MsgDeps, deps: Deps, mcap_deps: Mc
             "topic_filter.cpp",
             "config_options_from_node_params.cpp",
         },
-        .flags = &.{ "--std=c++17", "-Wall", "-Wextra", "-Wpedantic", "-Wno-deprecated" },
+        .flags = &.{ "-fPIC", "--std=c++17", "-Wall", "-Wextra", "-Wpedantic", "-Wno-deprecated" },
     });
 
     rosbag2_transport.linkLibrary(rosbag2_storage);

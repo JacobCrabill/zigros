@@ -97,7 +97,7 @@ pub const Interface = struct {
         target.linkLibrary(self.typesupport_introspection_c);
         // TODO: might not want to direclty link this, since RMW will call dlopen()?
         target.linkLibrary(self.typesupport_fastrtps_c);
-        // target.addIncludePath(self.typesupport_fastrtps_c.getEmittedIncludeTree());
+
         if (self.include_dir) |dir| {
             target.addIncludePath(dir);
         }
@@ -105,14 +105,24 @@ pub const Interface = struct {
 
     // Note this function should only be used if linkC has been called previously
     // on the same module, otherwise the standard link function should be used.
-    // Use the normal public link function for general c++ lingking
+    // Use the normal public link function for general c++ linking
     pub fn linkCpp(self: Interface, target: *Compile) void {
-        target.addIncludePath(self.interface_cpp);
         target.linkLibrary(self.typesupport_cpp);
         target.linkLibrary(self.typesupport_introspection_cpp);
         // TODO: might not want to direclty link this, since RMW will call dlopen()?
         target.linkLibrary(self.typesupport_fastrtps_cpp);
-        // target.addIncludePath(self.typesupport_fastrtps_cpp.getEmittedIncludeTree());
+
+        // --------------------------------------------------------------------
+        // TODO: I can't win either way - either we get undefined symbols, or we get the
+        // 'foo.so is neither ET_REL nor LLVM bitcode' error
+        // --------------------------------------------------------------------
+        // if (target.kind == .exe or (target.linkage != null and target.linkage.? == .dynamic)) {
+        //     target.linkLibrary(foo);
+        // } else {
+        //     target.addIncludePath(foo.getEmittedIncludeTree());
+        // }
+
+        target.addIncludePath(self.interface_cpp);
         if (self.include_dir) |dir| {
             target.addIncludePath(dir);
         }
@@ -217,11 +227,13 @@ pub fn create(
         .target = compile_args.target,
         .optimize = compile_args.optimize,
         .linkage = compile_args.linkage, //.static,
+        .strip = compile_args.strip,
     };
 
     const dynamic_args = CompileArgs{
         .target = compile_args.target,
         .optimize = compile_args.optimize,
+        .strip = compile_args.strip,
         .linkage = .dynamic,
     };
 
@@ -351,7 +363,7 @@ pub fn create(
     to_return.typesupport_c = RosidlTypesupportC.create(
         b,
         package_name,
-        static_args,
+        dynamic_args,
         "rosidl_typesupport_c",
         build_deps.rosidl_typesupport_c,
         deps,
@@ -386,7 +398,7 @@ pub fn create(
     to_return.typesupport_cpp = RosidlTypesupportCpp.create(
         b,
         package_name,
-        static_args,
+        dynamic_args,
         "rosidl_typesupport_cpp",
         build_deps.rosidl_typesupport_cpp,
         deps,

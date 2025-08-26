@@ -81,9 +81,11 @@ pub fn buildWithArgs(b: *std.Build, deps: Deps, args: zigros.CompileArgs) *Compi
     // TODO: Migrate to examples folder
     // // ROS2 CLI Tool (Replace Python with a compiled language!)
     // const ros2_cli = b.addExecutable(.{
+    //    .root_module = b.createModule(.{
     //     .name = "ros2_cli",
     //     .target = args.target,
     //     .optimize = args.optimize,
+    //     }),
     // });
     // ros2_cli.addCSourceFiles(.{
     //     .root = upstream.path("dynmsg_demo/src"),

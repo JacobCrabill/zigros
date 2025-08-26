@@ -105,10 +105,12 @@ pub fn buildWithArgs(b: *std.Build, deps: Deps, args: zigros.CompileArgs) *Compi
     // // TODO: Needs access to RMW selection...
     // const static_transform_publisher = b.addExecutable(.{
     //     .name = "static_transform_publisher",
-    //     .target = args.target,
-    //     .optimize = args.optimize,
-    //     .strip = (args.optimize != .Debug),
-    //     .pic = true,
+    //     .root_module = b.createModule(.{
+    //         .target = args.target,
+    //         .optimize = args.optimize,
+    //         .strip = (args.optimize != .Debug),
+    //         .pic = true,
+    //     }),
     // });
     // // zigros.linkRclcpp(static_transform_publisher);
     // // zigros.linkLoggerSpd(static_transform_publisher);

@@ -72,9 +72,11 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
 
     const zenohd = b.addExecutable(.{
         .name = "zenohd",
-        .target = args.target,
-        .optimize = args.optimize,
-        .strip = args.optimize != .Debug,
+        .root_module = b.createModule(.{
+            .target = args.target,
+            .optimize = args.optimize,
+            .strip = args.optimize != .Debug,
+        }),
         .use_llvm = true, // args.optimize != .Debug,
     });
 

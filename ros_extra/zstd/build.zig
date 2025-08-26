@@ -17,6 +17,7 @@ pub fn buildWithArgs(b: *std.Build, opts: zigros.CompileArgs) *Compile {
         .name = "zstd",
         .root_module = b.createModule(std_module_opts),
         .linkage = opts.linkage,
+        .use_llvm = true,
     });
 
     zstd.addIncludePath(upstream.path("lib/common"));
@@ -49,6 +50,10 @@ pub fn buildWithArgs(b: *std.Build, opts: zigros.CompileArgs) *Compile {
             "-Wredundant-decls",
             "-Wmissing-prototypes",
             "-Wc++-compat",
+            "-DZSTD_DISABLE_ASM=1",
+            "-DZSTD_LEGACY_SUPPORT=5",
+            "-DZSTD_STRIP_ERROR_STRINGS=1",
+            "-fvisibility=default", // HACK
         },
     });
     zstd.installHeadersDirectory(upstream.path("lib"), "", .{ .include_extensions = &.{".h"} });
@@ -62,7 +67,6 @@ const zstd_common_files: []const []const u8 = &.{
     "common/entropy_common.c",
     "common/error_private.c",
     "common/fse_decompress.c",
-    "common/mem.h",
     "common/pool.c",
     "common/threading.c",
     "common/xxhash.c",
@@ -109,10 +113,10 @@ const zstd_dictBuilder_files: []const []const u8 = &.{
 };
 
 const zstd_legacy_files: []const []const u8 = &.{
-    "legacy/zstd_v01.c",
-    "legacy/zstd_v02.c",
-    "legacy/zstd_v03.c",
-    "legacy/zstd_v04.c",
+    // "legacy/zstd_v01.c",
+    // "legacy/zstd_v02.c",
+    // "legacy/zstd_v03.c",
+    // "legacy/zstd_v04.c",
     "legacy/zstd_v05.c",
     "legacy/zstd_v06.c",
     "legacy/zstd_v07.c",

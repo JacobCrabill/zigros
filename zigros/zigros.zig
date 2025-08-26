@@ -41,4 +41,5 @@ pub const CompileArgs = struct {
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
     linkage: std.builtin.LinkMode = .static,
+    strip: bool,
 };
