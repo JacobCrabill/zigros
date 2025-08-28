@@ -27,7 +27,7 @@ pub fn buildWithArgs(b: *std.Build, deps: Deps, opts: zigros.CompileArgs) *Compi
         .pic = true,
     };
 
-    utils.writeAmentIndexFile(b, "tf2");
+    utils.writeAmentPackageIndexFile(b, "tf2");
 
     const tf2 = b.addLibrary(.{
         .name = "tf2",

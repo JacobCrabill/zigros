@@ -196,50 +196,20 @@ pub const PythonLibraries = struct {
 
 //  Extracts the expected artifacts given a package name
 fn extractInterface(dep: *std.Build.Dependency, name: []const u8) RosidlGenerator.Interface {
-    var buf: [256]u8 = undefined;
+    const b = dep.builder;
     return RosidlGenerator.Interface{
+        .package_name = name,
+        .write_files = dep.namedWriteFiles(name),
         .share = dep.namedWriteFiles(name).getDirectory(),
         .include_dir = dep.builder.named_lazy_paths.get(name),
-        .interface_c = dep.artifact(std.fmt.bufPrint(
-            &buf,
-            "{s}__rosidl_generator_c",
-            .{name},
-        ) catch @panic("Buffer too small")),
-        .interface_cpp = dep.namedWriteFiles(std.fmt.bufPrint(
-            &buf,
-            "{s}__rosidl_generator_cpp",
-            .{name},
-        ) catch @panic("Buffer too small")).getDirectory(),
-        .typesupport_c = dep.artifact(std.fmt.bufPrint(
-            &buf,
-            "{s}__rosidl_typesupport_c",
-            .{name},
-        ) catch @panic("Buffer too small")),
-        .typesupport_cpp = dep.artifact(std.fmt.bufPrint(
-            &buf,
-            "{s}__rosidl_typesupport_cpp",
-            .{name},
-        ) catch @panic("Buffer too small")),
-        .typesupport_introspection_c = dep.artifact(std.fmt.bufPrint(
-            &buf,
-            "{s}__rosidl_typesupport_introspection_c",
-            .{name},
-        ) catch @panic("Buffer too small")),
-        .typesupport_introspection_cpp = dep.artifact(std.fmt.bufPrint(
-            &buf,
-            "{s}__rosidl_typesupport_introspection_cpp",
-            .{name},
-        ) catch @panic("Buffer too small")),
-        .typesupport_fastrtps_c = dep.artifact(std.fmt.bufPrint(
-            &buf,
-            "{s}__rosidl_typesupport_fastrtps_c",
-            .{name},
-        ) catch @panic("Buffer too small")),
-        .typesupport_fastrtps_cpp = dep.artifact(std.fmt.bufPrint(
-            &buf,
-            "{s}__rosidl_typesupport_fastrtps_cpp",
-            .{name},
-        ) catch @panic("Buffer too small")),
+        .interface_c = dep.artifact(b.fmt("{s}__rosidl_generator_c", .{name})),
+        .interface_cpp = dep.namedWriteFiles(b.fmt("{s}__rosidl_generator_cpp", .{name})).getDirectory(),
+        .typesupport_c = dep.artifact(b.fmt("{s}__rosidl_typesupport_c", .{name})),
+        .typesupport_cpp = dep.artifact(b.fmt("{s}__rosidl_typesupport_cpp", .{name})),
+        .typesupport_introspection_c = dep.artifact(b.fmt("{s}__rosidl_typesupport_introspection_c", .{name})),
+        .typesupport_introspection_cpp = dep.artifact(b.fmt("{s}__rosidl_typesupport_introspection_cpp", .{name})),
+        .typesupport_fastrtps_c = dep.artifact(b.fmt("{s}__rosidl_typesupport_fastrtps_c", .{name})),
+        .typesupport_fastrtps_cpp = dep.artifact(b.fmt("{s}__rosidl_typesupport_fastrtps_cpp", .{name})),
     };
 }
 
@@ -1310,6 +1280,9 @@ pub fn build(b: *std.Build) void {
         .tracetools = ros_libraries.tracetools,
         .statistics_msgs = rcl_interfaces_artifacts.statistics_msgs,
     }, compile_args);
+
+    // TESTING
+    // ros_libraries.sensor_msgs.installArtifacts(b);
 
     //////////////////////////////////////////////////////////////////////////////////////
     // ROS / Ament Installation Configuration

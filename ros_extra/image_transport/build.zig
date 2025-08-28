@@ -38,7 +38,7 @@ pub fn buildWithArgs(
         .root_module = b.createModule(std_module_opts),
         .linkage = args.linkage,
     });
-    utils.writeAmentIndexFile(b, "image_transport");
+    utils.writeAmentPackageIndexFile(b, "image_transport");
 
     image_transport.addIncludePath(upstream.path("image_transport/include"));
     image_transport.addCSourceFiles(.{

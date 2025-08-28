@@ -71,7 +71,7 @@ pub fn buildWithArgs(b: *std.Build, msg_deps: MsgDeps, deps: Deps, mcap_deps: Mc
 
     // ---- rosbag2_storage ---------------------------------------------------
 
-    utils.writeAmentIndexFile(b, "rosbag2_storage");
+    utils.writeAmentPackageIndexFile(b, "rosbag2_storage");
 
     const rosbag2_storage = b.addLibrary(.{
         .name = "rosbag2_storage",
@@ -112,7 +112,7 @@ pub fn buildWithArgs(b: *std.Build, msg_deps: MsgDeps, deps: Deps, mcap_deps: Mc
 
     // ---- rosbag2_cpp ---------------------------------------------------
 
-    utils.writeAmentIndexFile(b, "rosbag2_cpp");
+    utils.writeAmentPackageIndexFile(b, "rosbag2_cpp");
 
     const rosbag2_cpp = b.addLibrary(.{
         .name = "rosbag2_cpp",

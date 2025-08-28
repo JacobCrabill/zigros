@@ -23,7 +23,7 @@ pub fn getLibrary(b: *std.Build, zigros: *const zr.ZigRos, opts: utils.BuildOpts
         .root_module = b.createModule(std_module_opts),
         .linkage = opts.linkage,
     });
-    utils.writeAmentIndexFile(b, "cv_bridge");
+    utils.writeAmentPackageIndexFile(b, "cv_bridge");
 
     // This is so dumb - the CMake-generated header cv_bridge_export.h does practically nothing...
     cv_bridge.addIncludePath(b.path("ros_extra/cv_bridge/include"));

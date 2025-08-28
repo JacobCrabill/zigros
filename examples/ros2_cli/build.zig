@@ -14,6 +14,7 @@ pub fn build(b: *std.Build) !void {
     const optimize = b.standardOptimizeOption(.{});
     const linkage = b.option(std.builtin.LinkMode, "linkage", "Specify static or dynamic linkage") orelse .static;
     const rmw = b.option(utils.RmwKind, "rmw", "ROS MiddleWare to use. NOTE: FastRTPS not yet working!") orelse .cyclonedds;
+    const strip = b.option(bool, "strip", "Strip debug info from binaries (Default: true for non-Debug builds)") orelse (optimize != .Debug);
 
     // Check the ABI to determine compability with certain features like shared-memory
     const has_shm: bool = if (rmw == .cyclonedds and target.result.abi == .gnu) true else false;
@@ -23,6 +24,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .target = target,
         .linkage = linkage,
+        .strip = strip,
         .rmw = rmw,
     };
 
@@ -30,6 +32,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
         .linkage = linkage,
+        .strip = strip,
         .@"system-python" = false,
     });
 
@@ -46,12 +49,14 @@ pub fn build(b: *std.Build) !void {
     // ROS2 CLI Tool (Replace Python with a compiled language!)
     const ros2_cli = b.addExecutable(.{
         .name = "ros2_cli",
-        .target = build_opts.target,
-        .optimize = build_opts.optimize,
+        .root_module = b.createModule(.{
+            .target = build_opts.target,
+            .optimize = build_opts.optimize,
+            .strip = strip,
+            .pic = true,
+        }),
         .use_llvm = true,
         // .use_lld = true,
-        // .strip = false,
-        .pic = true,
     });
     ros2_cli.addCSourceFiles(.{
         .root = upstream.path("dynmsg_demo/src"),

@@ -18,7 +18,7 @@ pub fn buildWithArgs(b: *std.Build, opts: zigros.CompileArgs) *Compile {
         .pic = true,
     };
 
-    utils.writeAmentIndexFile(b, "keyboard_handler");
+    utils.writeAmentPackageIndexFile(b, "keyboard_handler");
 
     const keyboard_handler = b.addLibrary(.{
         .name = "keyboard_handler",

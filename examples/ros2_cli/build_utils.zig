@@ -9,6 +9,7 @@ pub const BuildOpts = struct {
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
     linkage: std.builtin.LinkMode,
+    strip: bool,
     rmw: RmwKind, // = .cyclonedds,
 };
 
@@ -67,7 +68,7 @@ pub fn installLaunchFiles(
 }
 
 /// Create the Ament package index file to make the package a member of our AMENT_PREFIX_PATH.
-pub fn writeAmentIndexFile(b: *std.Build, pkg_name: []const u8) void {
+pub fn writeAmentPackageIndexFile(b: *std.Build, pkg_name: []const u8) void {
     const write_files = b.addWriteFiles();
     const cache_path = write_files.add(pkg_name, "");
     const pkg_file = b.fmt("share/ament_index/resource_index/packages/{s}", .{pkg_name});
@@ -96,7 +97,7 @@ pub const RosPackageOptions = struct {
 /// This includes installing param and launch files, if requested.
 /// The Ament package index file is also created.
 pub fn addRosPackage(b: *std.Build, opts: RosPackageOptions) void {
-    writeAmentIndexFile(b, opts.pkg_name);
+    writeAmentPackageIndexFile(b, opts.pkg_name);
     if (opts.install_params) {
         const src_dir = b.fmt("{s}/params", .{opts.pkg_root.?});
         const dest_subdir = opts.dest_subdir orelse opts.pkg_name;

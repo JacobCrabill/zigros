@@ -43,7 +43,7 @@ pub fn buildWithArgs(b: *std.Build, deps: Deps, args: zigros.CompileArgs) *Compi
         .pic = true,
     };
 
-    utils.writeAmentIndexFile(b, "tf2_eigen");
+    utils.writeAmentPackageIndexFile(b, "tf2_eigen");
 
     const tf2_eigen = b.addLibrary(.{
         .name = "tf2_eigen",

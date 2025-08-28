@@ -35,7 +35,7 @@ pub fn buildWithArgs(b: *std.Build, deps: Deps, args: zigros.CompileArgs) *Compi
         .pic = true,
     };
 
-    utils.writeAmentIndexFile(b, "rosx_introspection");
+    utils.writeAmentPackageIndexFile(b, "rosx_introspection");
 
     const rosx_introspection = b.addLibrary(.{
         .name = "rosx_introspection",

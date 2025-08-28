@@ -41,7 +41,7 @@ pub fn buildWithArgs(b: *std.Build, deps: Deps, args: zigros.CompileArgs) *Compi
         .pic = true,
     };
 
-    utils.writeAmentIndexFile(b, "tf2_ros");
+    utils.writeAmentPackageIndexFile(b, "tf2_ros");
 
     const tf2_ros = b.addLibrary(.{
         .name = "tf2_ros",

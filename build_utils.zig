@@ -69,7 +69,7 @@ pub fn installLaunchFiles(
 }
 
 /// Create the Ament package index file to make the package a member of our AMENT_PREFIX_PATH.
-pub fn writeAmentIndexFile(b: *std.Build, pkg_name: []const u8) void {
+pub fn writeAmentPackageIndexFile(b: *std.Build, pkg_name: []const u8) void {
     const write_files = b.addWriteFiles();
     const cache_path = write_files.add(pkg_name, "");
     const pkg_file = b.fmt("share/ament_index/resource_index/packages/{s}", .{pkg_name});
@@ -84,6 +84,15 @@ pub fn writeAmentPackageXml(b: *std.Build, pkg_name: []const u8) void {
     const content = b.fmt("<package><name>{s}</name></package>", .{pkg_name});
     const package_wf = write_files.add("package.xml", content);
     const install_file = b.addInstallFileWithDir(package_wf, .prefix, pkg_file);
+    b.getInstallStep().dependOn(&install_file.step);
+}
+
+/// Write an Ament resource_index file under the given subdir
+pub fn writeAmentResourceIndexFile(b: *std.Build, pkg_name: []const u8, file_name: []const u8, content: []const u8) void {
+    const write_files = b.addWriteFiles();
+    const resource_file = b.fmt("share/ament_index/resource_index/{s}/{s}", .{ pkg_name, file_name });
+    const resource_wf = write_files.add(file_name, content);
+    const install_file = b.addInstallFileWithDir(resource_wf, .prefix, resource_file);
     b.getInstallStep().dependOn(&install_file.step);
 }
 
@@ -169,7 +178,7 @@ pub const RosPackageOptions = struct {
 /// This includes installing param and launch files, if requested.
 /// The Ament package index file is also created.
 pub fn addRosPackage(b: *std.Build, opts: RosPackageOptions) void {
-    writeAmentIndexFile(b, opts.pkg_name);
+    writeAmentPackageIndexFile(b, opts.pkg_name);
     if (opts.install_params) {
         const src_dir = b.fmt("{s}/params", .{opts.pkg_root.?});
         const dest_subdir = opts.dest_subdir orelse opts.pkg_name;
@@ -211,7 +220,7 @@ pub fn setupUnitTest(b: *std.Build, run_tests_step: *std.Build.Step, test_exe: *
 pub fn iterateMessages(b: *std.Build, path: []const u8) ![]const []const u8 {
     var msgs = std.ArrayList([]const u8).init(b.allocator);
 
-    var msg_dir = try std.fs.cwd().openDir(path, .{ .iterate = true });
+    var msg_dir = try b.build_root.handle.openDir(path, .{ .iterate = true });
     defer msg_dir.close();
 
     var msg_dir_iter = msg_dir.iterate();

@@ -102,7 +102,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
     b.installArtifact(zenohd);
 
     // Setup Ament; add to our install environment; install the Zenoh config files
-    utils.writeAmentIndexFile(b, "rmw_zenoh_cpp");
+    utils.writeAmentPackageIndexFile(b, "rmw_zenoh_cpp");
     b.installDirectory(.{
         .source_dir = upstream.path("rmw_zenoh_cpp/config"),
         .install_dir = .prefix,

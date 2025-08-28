@@ -1,5 +1,6 @@
 const std = @import("std");
 const zigros = @import("../../../zigros/zigros.zig");
+const utils = @import("../../../build_utils.zig");
 
 const Dependency = std.Build.Dependency;
 const Module = std.Build.Module;
@@ -69,6 +70,8 @@ const RosidlTypesupportFastrtpsCpp = CodeGenerator(
 );
 
 pub const Interface = struct {
+    package_name: []const u8,
+    write_files: *WriteFile,
     share: LazyPath,
     /// Some interfaces also have C/C++ headers associated with them that might be needed downstream
     include_dir: ?LazyPath = null,
@@ -115,6 +118,8 @@ pub const Interface = struct {
         // --------------------------------------------------------------------
         // TODO: I can't win either way - either we get undefined symbols, or we get the
         // 'foo.so is neither ET_REL nor LLVM bitcode' error
+        // UPDATE: This is actually a minor Zig bug: https://github.com/ziglang/zig/issues/19341
+        // The lld warnings are just that - warnings - and can safely be ignored for now, as annoying as they are.
         // --------------------------------------------------------------------
         // if (target.kind == .exe or (target.linkage != null and target.linkage.? == .dynamic)) {
         //     target.linkLibrary(foo);
@@ -128,7 +133,7 @@ pub const Interface = struct {
         }
     }
 
-    /// Install all libraries from this Interface
+    /// Install all libraries from this Interface to the given Builder
     pub fn installArtifacts(self: *const Interface, b: *std.Build) void {
         b.installArtifact(self.interface_c);
         b.installArtifact(self.typesupport_c);
@@ -137,6 +142,49 @@ pub const Interface = struct {
         b.installArtifact(self.typesupport_introspection_cpp);
         b.installArtifact(self.typesupport_fastrtps_c);
         b.installArtifact(self.typesupport_fastrtps_cpp);
+
+        // Install the .msg and .idl files to <install prefix>/share/<package_name>
+        b.installDirectory(.{
+            .source_dir = self.write_files.getDirectory(),
+            .install_dir = .{ .custom = "share" },
+            .install_subdir = self.package_name,
+            .include_extensions = &.{ ".msg", ".srv", ".action", ".idl" },
+        });
+
+        // Also write package.xml and ament_index files for the package
+        utils.writeAmentPackageIndexFile(b, self.package_name);
+        utils.writeAmentPackageXml(b, self.package_name);
+
+        // The resource index must also list all .msg and .idl files from the package
+        var files = std.ArrayListUnmanaged([]const u8).initCapacity(b.allocator, self.write_files.files.items.len) catch @panic("OOM");
+        var idl_files = std.ArrayListUnmanaged([]const u8).initCapacity(b.allocator, self.write_files.files.items.len) catch @panic("OOM");
+        defer files.deinit(b.allocator);
+        defer {
+            for (idl_files.items) |file| {
+                b.allocator.free(file);
+            }
+            idl_files.deinit(b.allocator);
+        }
+
+        for (self.write_files.files.items) |file| {
+            const file_name = file.sub_path;
+            // add the .msg/.srv file
+            files.appendAssumeCapacity(file.sub_path);
+
+            // add the .idl file
+            const idx = std.mem.lastIndexOfScalar(u8, file_name, '.') orelse @panic("rosmsg file name doesn't end in .msg, .srv, or .action?");
+            const file_minus_ext = file_name[0..idx];
+            const idl_name = b.fmt("{s}.idl", .{file_minus_ext});
+            idl_files.appendAssumeCapacity(idl_name);
+        }
+        const resource_content_msg: []const u8 = std.mem.join(b.allocator, "\n", files.items) catch @panic("OOM");
+        defer b.allocator.free(resource_content_msg);
+        const resource_content_idl: []const u8 = std.mem.join(b.allocator, "\n", idl_files.items) catch @panic("OOM");
+        defer b.allocator.free(resource_content_idl);
+        const resource_content = b.fmt("{s}\n{s}\n", .{ resource_content_msg, resource_content_idl });
+        defer b.allocator.free(resource_content);
+
+        utils.writeAmentResourceIndexFile(b, "rosidl_interfaces", self.package_name, resource_content);
     }
 };
 
@@ -424,7 +472,9 @@ pub fn create(
         "-A--typesupports rosidl_typesupport_introspection_cpp rosidl_typesupport_fastrtps_cpp",
     );
 
-    to_return.artifacts = .{
+    to_return.artifacts = Interface{
+        .package_name = package_name,
+        .write_files = to_return.share_dir,
         .share = to_return.share_dir.getDirectory(),
         .interface_c = to_return.generator_c.artifact,
         .interface_cpp = to_return.generator_cpp.artifact.getDirectory(),
@@ -450,19 +500,13 @@ pub fn addInterfaces(
         const ext_idx = std.mem.lastIndexOfScalar(u8, file, '.') orelse @panic("Invalid interface file name!");
         const file_minus_ext = file[0 .. ext_idx + 1];
 
-        const idl = std.fmt.allocPrint(
-            self.owner.allocator,
-            "{s}idl",
-            .{file_minus_ext},
-        ) catch @panic("OOM");
+        const b: *std.Build = self.owner;
+
+        const idl = b.fmt("{s}idl", .{file_minus_ext});
 
         self.type_description.addIdlTuple(idl, self.adapter.output);
 
-        const type_description = std.fmt.allocPrint(
-            self.owner.allocator,
-            "{s}json",
-            .{file_minus_ext},
-        ) catch @panic("OOM");
+        const type_description = b.fmt("{s}json", .{file_minus_ext});
 
         self.generator_c.addInterface(base_path, file);
         self.generator_c.addIdlTuple(idl, self.adapter.output);
@@ -546,11 +590,6 @@ const PythonArguments = union(enum) {
 
 pub fn installArtifacts(self: *RosidlGenerator) void {
     var b = self.owner;
-    b.installDirectory(.{
-        .source_dir = self.share_dir.getDirectory(),
-        .install_dir = .{ .custom = self.package_name },
-        .install_subdir = "",
-    });
 
     b.installArtifact(self.generator_c.artifact);
 
