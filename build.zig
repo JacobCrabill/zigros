@@ -219,6 +219,11 @@ fn extractInterface(dep: *std.Build.Dependency, name: []const u8) RosidlGenerato
 // The build/configure step sets this if its missing lazy deps which allows the ZigRos init call to return null if it's not set
 var lazy_deps_needed = false;
 
+pub const SystemPaths = struct {
+    zenohc_library_path: ?[]const u8 = null,
+    zenohc_include_path: ?[]const u8 = null,
+};
+
 pub const ZigRos = struct {
     pub const CompileArgs = zigros.CompileArgs;
 
@@ -229,9 +234,12 @@ pub const ZigRos = struct {
     type_description_generator: *Compile,
     adapter_generator: *Compile,
     code_generator: *Compile,
+    /// TODO: Cleanup / download files as part of build
+    zenohc_library_path: ?[]const u8,
+    zenohc_include_path: ?[]const u8,
 
     // Will return null if lazy_deps_needed is set
-    pub fn init(dep: *std.Build.Dependency) ?ZigRos {
+    pub fn init(dep: *std.Build.Dependency, extra_paths: SystemPaths) ?ZigRos {
         if (lazy_deps_needed) return null;
         const system_python = if (dep.builder.user_input_options.get(system_python_arg_name)) |option| switch (option.value) {
             .flag => true,
@@ -368,6 +376,8 @@ pub const ZigRos = struct {
             .type_description_generator = dep.artifact("type_description_generator"),
             .adapter_generator = dep.artifact("adapter_generator"),
             .code_generator = dep.artifact("code_generator"),
+            .zenohc_library_path = extra_paths.zenohc_library_path,
+            .zenohc_include_path = extra_paths.zenohc_include_path,
         };
     }
 
@@ -471,6 +481,17 @@ pub const ZigRos = struct {
             step.linkLibrary(self.ros_libraries.rosidl_typesupport_fastrtps_cpp);
             step.linkLibrary(self.ros_libraries.fastcdr);
             step.linkLibrary(self.ros_libraries.fastdds);
+
+            // TODO: Find a cleaner way here at some point
+            if (self.zenohc_library_path) |zenohc_library_path| {
+                step.addLibraryPath(.{ .cwd_relative = zenohc_library_path });
+                step.linkSystemLibrary2("zenohc", .{
+                    .search_strategy = .paths_first,
+                    .preferred_link_mode = .static,
+                });
+            } else {
+                @panic("zenohc_library_path not given to ZigRos!");
+            }
         } else {
             step.addIncludePath(self.ros_libraries.rmw_zenoh_cpp.getEmittedIncludeTree());
             step.addIncludePath(self.ros_libraries.rosidl_typesupport_fastrtps_c.getEmittedIncludeTree());
