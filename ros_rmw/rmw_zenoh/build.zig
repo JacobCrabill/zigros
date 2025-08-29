@@ -12,6 +12,7 @@ const CompileArgs = zigros.CompileArgs;
 
 pub const Deps = struct {
     upstream: *Dependency,
+    zenoh_cpp_dep: *Dependency,
     ament_index_cpp: *Compile,
     tracetools: LazyPath,
     rcutils: *Compile,
@@ -26,13 +27,14 @@ pub const Deps = struct {
     rosidl_typesupport_interface: LazyPath,
     rosidl_typesupport_introspection_c: *Compile,
     rosidl_typesupport_introspection_cpp: *Compile,
-    zenohc_include_path: []const u8,
-    zenohc_library_path: []const u8,
+    zenohc_library_path: ?[]const u8,
+    zenohc_include_path: ?[]const u8,
 };
 
 pub const Artifacts = struct {
     rmw_zenoh_cpp: *Compile,
     zenohd: *Compile,
+    zenoh_config: LazyPath,
 };
 
 pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
@@ -58,13 +60,18 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
         .flags = &.{ "-DZENOHCXX_ZENOHC", "--std=c++17", "-Wall", "-Wextra", "-Wpedantic", "-Wthread-safety", "-Wno-deprecated-declarations", "-Wno-unknown-pragmas", "-frtti" },
     });
     rmw_zenoh.addIncludePath(upstream.path("rmw_zenoh_cpp/src/detail")); // They don't use standard src/include organization
+    rmw_zenoh.addIncludePath(deps.zenoh_cpp_dep.path("include"));
 
-    rmw_zenoh.addIncludePath(.{ .cwd_relative = deps.zenohc_include_path });
-    rmw_zenoh.addLibraryPath(.{ .cwd_relative = deps.zenohc_library_path });
     rmw_zenoh.linkSystemLibrary2("zenohc", .{
         .search_strategy = .paths_first,
         .preferred_link_mode = .static,
     });
+    if (deps.zenohc_include_path) |zenoch_inc| {
+        rmw_zenoh.addSystemIncludePath(.{ .cwd_relative = zenoch_inc });
+    }
+    if (deps.zenohc_library_path) |zenoch_lib| {
+        rmw_zenoh.addLibraryPath(.{ .cwd_relative = zenoch_lib });
+    }
 
     zigros.linkDependencyStruct(rmw_zenoh, deps, .cpp);
 
@@ -81,6 +88,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
     });
 
     zenohd.addIncludePath(upstream.path("rmw_zenoh_cpp/src/detail")); // They don't use standard src/include organization
+    zenohd.addIncludePath(deps.zenoh_cpp_dep.path("include"));
     zenohd.addCSourceFiles(.{
         .root = upstream.path("rmw_zenoh_cpp/src"),
         .files = zenohd_srcs,
@@ -92,12 +100,16 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
     zenohd.linkLibrary(deps.rcutils);
     zenohd.linkLibrary(deps.rmw);
 
-    zenohd.addIncludePath(.{ .cwd_relative = deps.zenohc_include_path });
-    zenohd.addLibraryPath(.{ .cwd_relative = deps.zenohc_library_path });
     zenohd.linkSystemLibrary2("zenohc", .{
         .search_strategy = .paths_first,
         .preferred_link_mode = .static,
     });
+    if (deps.zenohc_include_path) |zenoch_inc| {
+        zenohd.addSystemIncludePath(.{ .cwd_relative = zenoch_inc });
+    }
+    if (deps.zenohc_library_path) |zenoch_lib| {
+        zenohd.addLibraryPath(.{ .cwd_relative = zenoch_lib });
+    }
 
     b.installArtifact(zenohd);
 
@@ -108,10 +120,17 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
         .install_dir = .prefix,
         .install_subdir = "share/rmw_zenoh_cpp/config",
     });
+    var zenoh_config = b.addNamedWriteFiles("zenoh_config");
+    _ = zenoh_config.addCopyDirectory(
+        upstream.path("rmw_zenoh_cpp/config"),
+        "share/rmw_zenoh_cpp/config",
+        .{ .include_extensions = &.{ ".json", ".json5" } },
+    );
 
     return .{
         .rmw_zenoh_cpp = rmw_zenoh,
         .zenohd = zenohd,
+        .zenoh_config = zenoh_config.getDirectory(),
     };
 }
 

@@ -72,15 +72,6 @@ pub fn build(b: *std.Build) !void {
     zigros.linkLoggerSpd(ros2_cli);
     utils.linkRmw(ros2_cli, &zigros, rmw);
 
-    // Properly installing libzenohc is still a TODO
-    // HACK - why is the library path getting dropped...?
-    ros2_cli.addIncludePath(.{ .cwd_relative = "/home/jcrabill/.local/include/x86_64-linux-musl/" });
-    ros2_cli.addLibraryPath(.{ .cwd_relative = "/home/jcrabill/.local/lib/x86_64-linux-musl/" });
-    ros2_cli.linkSystemLibrary2("zenohc", .{
-        .search_strategy = .paths_first,
-        .preferred_link_mode = .static,
-    });
-
     if (linkage == .dynamic) {
         for (ros2_cli.root_module.link_objects.items) |obj| {
             switch (obj) {

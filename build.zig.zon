@@ -177,6 +177,10 @@
             .url = "https://github.com/ros2/rmw_zenoh/archive/513939356681a2cfc3142e86635d3e2538a04b6e.tar.gz", // Jazzy
             .hash = "N-V-__8AAKr1CQBi_H6iPsmbJZ5jCEOb80DDsR1Awl9Ore_T",
         },
+        .zenoh_cpp = .{
+            .url = "https://github.com/eclipse-zenoh/zenoh-cpp/archive/refs/tags/1.5.0.tar.gz",
+            .hash = "N-V-__8AAA0IDABKM7aojBFdr0nUw35NITG69ikZpSI6GX9N",
+        },
 
         // ---------------- Micro XRCE DDS Libraries ----------------
         .microcdr = .{

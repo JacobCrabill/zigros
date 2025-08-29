@@ -71,6 +71,7 @@ const UpstreamDependencies = struct {
     rmw_cyclonedds: *Dependency,
     rmw_fastrtps: *Dependency,
     rmw_zenoh: *Dependency,
+    zenoh_cpp: *Dependency,
     // rmw_uxrce: *Dependency,
     libstatistics_collector: *Dependency,
     ament_index: *Dependency,
@@ -134,6 +135,8 @@ pub const RosLibraries = struct {
     // rmw_fastrtps_dynamic_cpp: *Compile,
     rmw_fastrtps_shared_cpp: *Compile,
     rmw_zenoh_cpp: *Compile,
+    zenohd: *Compile,
+    zenoh_config: LazyPath,
     // rmw_uxrce: *Compile,
     // microcdr: *Compile, // External
     // uxrce_client: *Compile, // External
@@ -219,6 +222,7 @@ var lazy_deps_needed = false;
 pub const ZigRos = struct {
     pub const CompileArgs = zigros.CompileArgs;
 
+    zigros_dep: *std.Build.Dependency,
     ros_libraries: RosLibraries,
     python_libraries: PythonLibraries,
     python: zigros.PythonDep,
@@ -236,6 +240,7 @@ pub const ZigRos = struct {
         } else system_python_default;
 
         return ZigRos{
+            .zigros_dep = dep,
             .ros_libraries = .{
                 .rcutils = dep.artifact("rcutils"),
                 .rcpputils = dep.artifact("rcpputils"),
@@ -298,6 +303,8 @@ pub const ZigRos = struct {
                 // .rmw_fastrtps_dynamic_cpp = dep.artifact("rmw_fastrtps_dynamic_cpp"),
                 .rmw_fastrtps_shared_cpp = dep.artifact("rmw_fastrtps_shared_cpp"),
                 .rmw_zenoh_cpp = dep.artifact("rmw_zenoh_cpp"),
+                .zenohd = dep.artifact("zenohd"),
+                .zenoh_config = dep.namedWriteFiles("zenoh_config").getDirectory(),
                 // .rmw_uxrce = dep.artifact("rmw_uxrce"),
                 // .microcdr = dep.artifact("microcdr"),
                 // .uxrce_client = dep.artifact("uxrce_client"),
@@ -477,6 +484,17 @@ pub const ZigRos = struct {
         step.linkLibrary(self.ros_libraries.rcl_logging_spdlog);
     }
 
+    /// Install the zenoh router and its config files to the given builder
+    pub fn installZenoh(self: ZigRos, b: *std.Build) void {
+        b.installArtifact(self.zigros_dep.artifact("zenohd"));
+        b.installDirectory(.{
+            .source_dir = self.zigros_dep.namedWriteFiles("zenoh_config").getDirectory(),
+            .install_dir = .prefix,
+            .install_subdir = "",
+            .include_extensions = &.{ ".json5", ".json" },
+        });
+    }
+
     pub fn createInterface(
         self: ZigRos,
         b: *std.Build,
@@ -537,6 +555,9 @@ pub fn build(b: *std.Build) void {
     const linkage = b.option(std.builtin.LinkMode, "linkage", "Specify static or dynamic linkage") orelse .static;
     const strip = b.option(bool, "strip", "Strip debug info from binaries (Default: true for non-Debug builds)") orelse (optimize != .Debug);
 
+    const zenohc_library_path: ?[]const u8 = b.option([]const u8, "zenohc_library_path", "Path to directory containing libzenohc.a");
+    const zenohc_include_path: ?[]const u8 = b.option([]const u8, "zenohc_include_path", "Path to directory containing Zenoh headers");
+
     const compile_args = zigros.CompileArgs{
         .target = target,
         .optimize = optimize,
@@ -592,6 +613,7 @@ pub fn build(b: *std.Build) void {
         .rmw_cyclonedds = b.dependency("rmw_cyclonedds", .{}),
         .rmw_fastrtps = b.dependency("rmw_fastrtps", .{}),
         .rmw_zenoh = b.dependency("rmw_zenoh", .{}),
+        .zenoh_cpp = b.dependency("zenoh_cpp", .{}),
         // .rmw_uxrce = b.dependency("rmw_microxrcedds", .{}),
         .libstatistics_collector = b.dependency("libstatistics_collector", .{}),
         .ament_index = b.dependency("ament_index", .{}),
@@ -968,14 +990,13 @@ pub fn build(b: *std.Build) void {
 
     const zenoh_artifacts = rmw_zenoh.buildWithArgs(b, compile_args, .{
         .upstream = upstream_dependencies.rmw_zenoh,
+        .zenoh_cpp_dep = upstream_dependencies.zenoh_cpp,
         .ament_index_cpp = ros_libraries.ament_index_cpp,
         .fastcdr = fastcdr,
         .rcpputils = ros_libraries.rcpputils,
         .rcutils = ros_libraries.rcutils,
         .rmw = ros_libraries.rmw,
         .tracetools = ros_libraries.tracetools,
-        .zenohc_library_path = "/home/jcrabill/.local/lib/x86_64-linux-musl/",
-        .zenohc_include_path = "/home/jcrabill/.local/include/x86_64-linux-musl/",
         .rosidl_runtime_c = ros_libraries.rosidl_runtime_c,
         .rosidl_runtime_cpp = ros_libraries.rosidl_runtime_cpp,
         .rosidl_typesupport_interface = ros_libraries.rosidl_typesupport_interface,
@@ -984,8 +1005,12 @@ pub fn build(b: *std.Build) void {
         .rosidl_typesupport_fastrtps_c = ros_libraries.rosidl_typesupport_fastrtps_c,
         .rosidl_typesupport_fastrtps_cpp = ros_libraries.rosidl_typesupport_fastrtps_cpp,
         .rosidl_dynamic_typesupport = ros_libraries.rosidl_dynamic_typesupport,
+        .zenohc_library_path = zenohc_library_path,
+        .zenohc_include_path = zenohc_include_path,
     });
     ros_libraries.rmw_zenoh_cpp = zenoh_artifacts.rmw_zenoh_cpp;
+    ros_libraries.zenohd = zenoh_artifacts.zenohd;
+    ros_libraries.zenoh_config = zenoh_artifacts.zenoh_config;
 
     // const microcdr = b.dependency("microcdr", compile_args).artifact("microcdr");
     // const uxrce_client = b.dependency("uxrce_client", compile_args).artifact("micro-xrce-dds-client");
