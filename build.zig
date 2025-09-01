@@ -229,18 +229,25 @@ pub const ZigRos = struct {
     pub const CompileArgs = zigros.CompileArgs;
 
     zigros_dep: *std.Build.Dependency,
+
+    // TODO: breakup into smaller groups (see Rcl, Rclcpp, Rmw)
     ros_libraries: RosLibraries,
     python_libraries: PythonLibraries,
     python: zigros.PythonDep,
     type_description_generator: *Compile,
     adapter_generator: *Compile,
     code_generator: *Compile,
+
+    rmw: zigros.Rmw,
+    rcl: zigros.Rcl,
+    rclcpp: zigros.Rclcpp,
+
     /// TODO: Cleanup / download files as part of build
     zenohc_library_path: ?[]const u8,
     zenohc_include_path: ?[]const u8,
 
     // Will return null if lazy_deps_needed is set
-    pub fn init(dep: *std.Build.Dependency, extra_paths: SystemPaths) ?ZigRos {
+    pub fn init(dep: *std.Build.Dependency, rmw_kind: zigros.RmwKind, extra_paths: SystemPaths) ?ZigRos {
         if (lazy_deps_needed) return null;
         const system_python = if (dep.builder.user_input_options.get(system_python_arg_name)) |option| switch (option.value) {
             .flag => true,
@@ -248,14 +255,79 @@ pub const ZigRos = struct {
             else => system_python_default,
         } else system_python_default;
 
+        const rcl_libs: zigros.Rcl = .{
+            .rosidl_typesupport_interface = dep.namedWriteFiles("rosidl_typesupport_interface").getDirectory(),
+            .rcutils = dep.artifact("rcutils"),
+            .rcl = dep.artifact("rcl"),
+            .rcl_action = dep.artifact("rcl_action"),
+            .rcl_lifecycle = dep.artifact("rcl_lifecycle"),
+            .rmw = dep.artifact("rmw"),
+            .rcl_yaml_param_parser = dep.artifact("rcl_yaml_param_parser"),
+            .yaml = dep.artifact("yaml"),
+            .rosidl_runtime_c = dep.artifact("rosidl_runtime_c"),
+            .rosidl_dynamic_typesupport = dep.artifact("rosidl_dynamic_typesupport"),
+            .rcl_interfaces = dep.extractInterface("rcl_interfaces"),
+            .type_description_interfaces = dep.extractInterface("type_description_interfaces"),
+            .service_msgs = dep.extractInterface("service_msgs"),
+            .builtin_interfaces = dep.extractInterface("builtin_interfaces"),
+        };
+
+        const rclcpp_libs: zigros.Rclcpp = .{
+            // .rcl = &rcl_libs,
+            .tracetools = dep.namedWriteFiles("tracetools").getDirectory(),
+            .rosidl_runtime_cpp = dep.artifact("rosidl_runtime_cpp"),
+            .rosidl_typesupport_introspection_cpp = dep.artifact("rosidl_typesupport_introspection_cpp"),
+            .libstatistics_collector = dep.artifact("libstatistics_collector"),
+            .ament_index_cpp = dep.artifact("ament_index_cpp"),
+            .rclcpp = dep.artifact("rclcpp"),
+            .rclcpp_action = dep.artifact("rclcpp_action"),
+            .rclcpp_components = dep.artifact("rclcpp_components"),
+            .rclcpp_lifecycle = dep.artifact("rclcpp_lifecycle"),
+            .rcpputils = dep.artifact("rcpputils"),
+            .rcl_interfaces = dep.extractInterface("rcl_interfaces"),
+            .type_description_interfaces = dep.extractInterface("type_description_interfaces"),
+            .service_msgs = dep.extractInterface("service_msgs"),
+            .builtin_interfaces = dep.extractInterface("builtin_interfaces"),
+            .statistics_msgs = dep.extractInterface("statistics_msgs"),
+            .rosgraph_msgs = dep.extractInterface("rosgraph_msgs"),
+            .composition_interfaces = dep.extractInterface("composition_interfaces"),
+            .lifecycle_msgs = dep.extractInterface("lifecycle_msgs"),
+        };
+
+        const rmw_libs: zigros.Rmw = switch (rmw_kind) {
+            .zenoh => .{ .zenoh = .{
+                .rmw_zenoh_cpp = dep.artifact("rmw_zenoh_cpp"),
+                .rosidl_typesupport_fastrtps_c = dep.artifact("rosidl_typesupport_fastrtps_c"),
+                .rosidl_typesupport_fastrtps_cpp = dep.artifact("rosidl_typesupport_fastrtps_cpp"),
+                .fastcdr = dep.artifact("fastcdr"),
+                .fastdds = dep.artifact("fastdds"),
+                .zenohc = .{
+                    .name = "zenohc",
+                    .library_dir = extra_paths.zenohc_library_path,
+                    .include_dir = extra_paths.zenohc_include_path,
+                },
+            } },
+            .fastrtps => .{ .fastrtps = .{
+                .rmw_fastrtps_cpp = dep.artifact("rmw_fastrtps_cpp"),
+                .rosidl_dynamic_typesupport_fastrtps = dep.artifact("rosidl_dynamic_typesupport_fastrtps"),
+                .rosidl_typesupport_fastrtps_c = dep.artifact("rosidl_typesupport_fastrtps_c"),
+                .rosidl_typesupport_fastrtps_cpp = dep.artifact("rosidl_typesupport_fastrtps_cpp"),
+                .rmw_fastrtps_shared_cpp = dep.artifact("rmw_fastrtps_shared_cpp"),
+                .fastdds = dep.artifact("fastdds"),
+                .fastcdr = dep.artifact("fastcdr"),
+            } },
+            .cyclonedds => .{ .cyclonedds = .{
+                .rmw_cyclonedds_cpp = dep.artifact("rmw_cyclonedds_cpp"),
+                .cyclonedds = dep.artifact("cyclonedds"),
+            } },
+        };
+
         return ZigRos{
             .zigros_dep = dep,
             .ros_libraries = .{
                 .rcutils = dep.artifact("rcutils"),
                 .rcpputils = dep.artifact("rcpputils"),
-                .rosidl_typesupport_interface = dep.namedWriteFiles(
-                    "rosidl_typesupport_interface",
-                ).getDirectory(),
+                .rosidl_typesupport_interface = dep.namedWriteFiles("rosidl_typesupport_interface").getDirectory(),
                 .rosidl_runtime_c = dep.artifact("rosidl_runtime_c"),
                 .rosidl_runtime_cpp = dep.namedWriteFiles("rosidl_runtime_cpp").getDirectory(),
                 .rosidl_typesupport_c = dep.artifact("rosidl_typesupport_c"),
@@ -379,6 +451,9 @@ pub const ZigRos = struct {
             .code_generator = dep.artifact("code_generator"),
             .zenohc_library_path = extra_paths.zenohc_library_path,
             .zenohc_include_path = extra_paths.zenohc_include_path,
+            .rcl = rcl_libs,
+            .rclcpp = rclcpp_libs,
+            .rmw = rmw_libs,
         };
     }
 
@@ -1144,7 +1219,7 @@ pub fn build(b: *std.Build) void {
     ros_libraries.rclcpp_lifecycle = rclcpp_artifacts.rclcpp_lifecycle;
 
     const rclcpp_libs: zigros.Rclcpp = .{
-        .rcl = &rcl_libs,
+        // .rcl = &rcl_libs,
         .tracetools = ros_libraries.tracetools,
         .rosidl_runtime_cpp = ros_libraries.rosidl_runtime_cpp,
         .rosidl_typesupport_introspection_cpp = ros_libraries.rosidl_typesupport_introspection_cpp,

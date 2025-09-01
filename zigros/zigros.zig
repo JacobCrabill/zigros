@@ -157,7 +157,7 @@ pub const Rcl = struct {
 
 /// Container for rclcpp libraries
 pub const Rclcpp = struct {
-    rcl: *const Rcl,
+    // rcl: *const Rcl,
 
     tracetools: LazyPath,
     rosidl_runtime_cpp: LazyPath,
@@ -181,7 +181,7 @@ pub const Rclcpp = struct {
 
     /// Link the module to all rclcpp libraries
     pub fn link(self: Rclcpp, mod: *Module) void {
-        self.rcl.link(mod);
+        // self.rcl.link(mod);
 
         mod.addIncludePath(self.rosidl_runtime_cpp);
         mod.addIncludePath(self.tracetools);
