@@ -4,6 +4,7 @@ const zr = @import("build.zig");
 const Compile = std.Build.Step.Compile;
 const LazyPath = std.Build.LazyPath;
 const Target = std.Build.ResolvedTarget;
+const RmwKind = @import("zigros/zigros.zig").RmwKind;
 
 /// Basic options applied to most build targets
 pub const BuildOpts = struct {
@@ -13,22 +14,6 @@ pub const BuildOpts = struct {
     strip: bool,
     rmw: RmwKind, // = .cyclonedds,
 };
-
-/// Available ROS MiddleWare options
-pub const RmwKind = enum(u8) {
-    cyclonedds,
-    fastrtps,
-    zenoh,
-};
-
-/// Link the chosen RMW implementation
-pub fn linkRmw(step: *std.Build.Step.Compile, zigros: *const zr.ZigRos, rmw: RmwKind) void {
-    switch (rmw) {
-        .cyclonedds => zigros.linkRmwCycloneDds(step),
-        .fastrtps => zigros.linkRmwFastRtps(step),
-        .zenoh => zigros.linkRmwZenoh(step),
-    }
-}
 
 /// Install paramter files for a package.
 ///
@@ -125,7 +110,7 @@ pub fn registerPluginlibPlugin(b: *std.Build, plugin: PluginDescription) void {
 pub fn writeLocalSetupSh(b: *std.Build, rmw: RmwKind, extra: []const u8) void {
     const local_setup_sh = b.addWriteFiles();
     const main_contents: []const u8 =
-        \\#!/bin/bash
+        \\#!/usr/bin/env /bash
         \\export ZIGROS_INSTALL_ROOT=$(dirname $(realpath ${BASH_SOURCE[0]}))
         \\export AMENT_PREFIX_PATH=${ZIGROS_INSTALL_ROOT}
         \\export PATH=${PATH}:${ZIGROS_INSTALL_ROOT}/bin/

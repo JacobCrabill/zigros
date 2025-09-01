@@ -13,6 +13,7 @@ pub const Deps = struct {
     rosidl_typesupport_introspection_cpp: *Compile,
     rosidl_runtime_cpp: std.Build.LazyPath,
     rosidl_typesupport_interface: std.Build.LazyPath,
+    rcl: zigros.Rcl,
 };
 
 pub fn buildWithArgs(b: *std.Build, deps: Deps, args: zigros.CompileArgs) *Compile {
@@ -76,31 +77,19 @@ pub fn buildWithArgs(b: *std.Build, deps: Deps, args: zigros.CompileArgs) *Compi
         "",
         .{ .include_extensions = &.{ ".h", ".hpp" } },
     );
+
+    // Also add the typesupport helpers from the demo in the repo
+    dynmsg.addCSourceFiles(.{
+        .root = upstream.path("dynmsg_demo/src"),
+        .files = &.{ "cli.cpp", "cli_tool.cpp", "typesupport_utils.cpp" },
+        .flags = &.{ "--std=c++17", "-Wall", "-Wextra", "-Wpedantic", "-Wno-deprecated" },
+    });
+    dynmsg.addIncludePath(upstream.path("dynmsg_demo/include"));
+    dynmsg.linkLibrary(deps.yaml_cpp);
+    deps.rcl.link(dynmsg.root_module);
+    // TODO: I shouldn't need to link RMW here when it's just a library, right?
+
     b.installArtifact(dynmsg);
-
-    // TODO: Migrate to examples folder
-    // // ROS2 CLI Tool (Replace Python with a compiled language!)
-    // const ros2_cli = b.addExecutable(.{
-    //    .root_module = b.createModule(.{
-    //     .name = "ros2_cli",
-    //     .target = args.target,
-    //     .optimize = args.optimize,
-    //     }),
-    // });
-    // ros2_cli.addCSourceFiles(.{
-    //     .root = upstream.path("dynmsg_demo/src"),
-    //     .files = &.{ "cli.cpp", "cli_tool.cpp", "typesupport_utils.cpp" },
-    //     .flags = &.{ "--std=c++17", "-Wall", "-Wextra", "-Wpedantic", "-Wno-deprecated" },
-    // });
-    // ros2_cli.addIncludePath(upstream.path("dynmsg_demo/include"));
-    // ros2_cli.linkLibrary(dynmsg);
-    // ros2_cli.addIncludePath(deps.rosidl_runtime_cpp);
-    // ros2_cli.addIncludePath(deps.rosidl_typesupport_interface);
-    // ros2_cli.linkLibrary(deps.yaml_cpp);
-    // zigros.linkRcl(ros2_cli);
-    // utils.linkRmw(ros2_cli, zigros, rmw);
-
-    // b.installArtifact(ros2_cli);
 
     return dynmsg;
 }

@@ -62,7 +62,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     const std_module_opts: std.Build.Module.CreateOptions = .{
         .target = args.target,
         .optimize = args.optimize,
-        // .pic = if (linkage == .dynamic) true else null,
+        .strip = true,
         .pic = true,
     };
 
@@ -431,9 +431,10 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     const type_description_generator = b.addExecutable(.{
         .name = "type_description_generator",
         .root_module = b.createModule(.{
+            .root_source_file = b.path("ros_core/rosidl/src/type_description_generator.zig"),
             .target = b.graph.host, // This is only used in run artifacts, don't cross compile
             .optimize = optimize,
-            .root_source_file = b.path("ros_core/rosidl/src/type_description_generator.zig"),
+            .strip = true,
         }),
     });
     b.installArtifact(type_description_generator);
@@ -441,9 +442,10 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     const adapter_generator = b.addExecutable(.{
         .name = "adapter_generator",
         .root_module = b.createModule(.{
+            .root_source_file = b.path("ros_core/rosidl/src/adapter_generator.zig"),
             .target = b.graph.host, // This is only used in run artifacts, don't cross compile
             .optimize = optimize,
-            .root_source_file = b.path("ros_core/rosidl/src/adapter_generator.zig"),
+            .strip = true,
         }),
     });
     b.installArtifact(adapter_generator);
@@ -451,9 +453,10 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     const code_generator = b.addExecutable(.{
         .name = "code_generator",
         .root_module = b.createModule(.{
+            .root_source_file = b.path("ros_core/rosidl/src/code_generator.zig"),
             .target = b.graph.host, // This is only used in run artifacts, don't cross compile
             .optimize = optimize,
-            .root_source_file = b.path("ros_core/rosidl/src/code_generator.zig"),
+            .strip = true,
         }),
     });
     b.installArtifact(code_generator);
