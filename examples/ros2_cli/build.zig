@@ -55,8 +55,6 @@ pub fn build(b: *std.Build) !void {
             .strip = strip,
             .pic = true,
         }),
-        .use_llvm = true,
-        // .use_lld = true,
     });
     ros2_cli.addCSourceFiles(.{
         .root = upstream.path("dynmsg_demo/src"),

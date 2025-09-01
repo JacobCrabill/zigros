@@ -6,7 +6,7 @@ const RosidlGenerator = @import("RosidlGenerator.zig");
 const CompileArgs = zigros.CompileArgs;
 
 fn pascalToSnake(allocator: std.mem.Allocator, in: []const u8) std.mem.Allocator.Error![]const u8 {
-    var out = std.ArrayList(u8).init(allocator);
+    var out = std.array_list.Managed(u8).init(allocator);
     var prev_is_lower = false;
     if (in.len == 0) return "";
 
@@ -169,7 +169,7 @@ pub fn CodeGenerator(
                 .{ package_name, generator_name },
             ) catch @panic("OOM");
 
-            var python_paths = std.ArrayList(std.Build.LazyPath).init(b.allocator);
+            var python_paths = std.array_list.Managed(std.Build.LazyPath).init(b.allocator);
             defer python_paths.deinit();
 
             python_paths.appendSlice(&.{
@@ -372,7 +372,7 @@ pub fn CodeGenerator(
 
             switch (code_type) {
                 .c, .cpp => {
-                    var c_files = std.ArrayListUnmanaged([]u8){};
+                    var c_files = std.ArrayList([]u8){};
 
                     var it = std.mem.tokenizeAny(u8, interface, "/.");
                     var suffix: []const u8 = "";

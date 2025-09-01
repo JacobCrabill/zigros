@@ -462,9 +462,11 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     _ = rosidl_generator;
 
     const unit_tests = b.addTest(.{
-        .root_source_file = b.path("ros_core/rosidl/src/RosidlGeneratorTemplate.zig"),
-        .target = target,
-        .optimize = optimize,
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("ros_core/rosidl/src/RosidlGeneratorTemplate.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
     });
 
     const run_unit_tests = b.addRunArtifact(unit_tests);

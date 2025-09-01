@@ -133,7 +133,7 @@ pub fn setupUnitTest(b: *std.Build, run_tests_step: *std.Build.Step, test_exe: *
 
 /// Iterate a directory containing msg/, srv/, action/ and return all ROS message files
 pub fn iterateMessages(b: *std.Build, path: []const u8) ![]const []const u8 {
-    var msgs = std.ArrayList([]const u8).init(b.allocator);
+    var msgs = std.array_list.Managed([]const u8).init(b.allocator);
 
     var msg_dir = try std.fs.cwd().openDir(path, .{ .iterate = true });
     defer msg_dir.close();

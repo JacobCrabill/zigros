@@ -7,8 +7,8 @@
         // ---------------- Build-Time dependencies ----------------
         .python = .{
             .lazy = true,
-            .url = "https://github.com/zig-robotics/cpython/archive/tags/3.11.5-2.tar.gz",
-            .hash = "cpython-3.11.5-2-WIrcCZxxLwStKXRmcaXOS2ML-kLlpjBmOG2gn_ulAFgG",
+            .url = "https://github.com/JacobCrabill/cpython/archive/7a27dc16f154e602729e8d6b34e197aa3f4a2634.tar.gz",
+            .hash = "cpython-3.11.5-2-WIrcCQhyLwQt6TB-3qdDs88gbuE2SYMZ_14KiRr59U_E",
         },
         .empy = .{
             .lazy = true,
@@ -149,8 +149,8 @@
 
         // ---------------- Eclipse Cyclone DDS Libraries ----------------
         .cyclonedds = .{
-            .url = "https://github.com/JacobCrabill/zig-cyclonedds/archive/42783049b9d840b37b404a2907c3a11e8436964a.tar.gz",
-            .hash = "cyclonedds-0.10.5-VJFfy0FAAAC3FrQTvw7PqE1OIJIzkym1KvDvgJZjZY3T",
+            .url = "https://github.com/JacobCrabill/zig-cyclonedds/archive/0fd5ff02817ca64ec599e88cd596d048795a7e0e.tar.gz",
+            .hash = "cyclonedds-0.10.5-VJFfy6lAAACKkBpGO9zNQUcBCB5bs4aPQzd4w92Vr_w-",
         },
         .rmw_cyclonedds = .{
             .url = "https://github.com/ros2/rmw_cyclonedds/archive/tags/2.2.2.tar.gz", // Jazzy
@@ -159,8 +159,8 @@
 
         // ---------------- eProsima Fast DDS Libraries ----------------
         .fastdds = .{
-            .url = "https://github.com/JacobCrabill/zig-Fast-DDS/archive/b210f38890c5d930dfaa532a6617980ab4481e6a.tar.gz",
-            .hash = "zig_fastdds-2.14.4-8klu5l9EAACFX5Tz0ZJv7eXTBKUveipsLYLLg7azprVo",
+            .url = "https://github.com/JacobCrabill/zig-Fast-DDS/archive/4ff02d9f04a9fdc6c9a79318bf161ca8cbc31b3d.tar.gz",
+            .hash = "zig_fastdds-2.14.4-8klu5mpEAAD2qOsPuu4mGgwCqtSSRSVzH8n_a2YGwbKl",
         },
         .fastcdr = .{
             .url = "https://github.com/JacobCrabill/zig-Fast-CDR/archive/5b38e52625203e4ffb3b4de298fbc1a46dda8d1a.tar.gz",
@@ -281,8 +281,8 @@
 
         // ---------------- Zig Packages ----------------
         .flags = .{
-            .url = "https://github.com/n0s4/flags/archive/0e2491d8e6d2be38dc0c2ce8e103469886e468bb.tar.gz",
-            .hash = "flags-0.10.0-a_9h3kR2AABNAfaPGRyOOGmWsfv12Hk6JQPTX4MM446s",
+            .url = "https://github.com/JacobCrabill/zig-flags/archive/8f65f0d5bf0d92b950ddf16afb34533491831c7d.tar.gz",
+            .hash = "flags-0.11.0-a_9h3gR2AACtwEzEcKhIsYPEgNPbBeGYKhbYL4lsmJ1N",
         },
     },
     .paths = .{

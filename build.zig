@@ -987,6 +987,7 @@ pub fn build(b: *std.Build) void {
         .optimize = compile_args.optimize,
         .linkage = compile_args.linkage,
         .enable_shm = enable_shm,
+        .pic = true,
     });
     const cyclonedds = cyclonedds_dep.artifact("cyclonedds");
     b.installArtifact(cyclonedds);

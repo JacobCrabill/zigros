@@ -84,7 +84,6 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps) Artifacts {
             .optimize = args.optimize,
             .strip = args.optimize != .Debug,
         }),
-        .use_llvm = true, // args.optimize != .Debug,
     });
 
     zenohd.addIncludePath(upstream.path("rmw_zenoh_cpp/src/detail")); // They don't use standard src/include organization

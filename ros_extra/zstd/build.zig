@@ -17,7 +17,6 @@ pub fn buildWithArgs(b: *std.Build, opts: zigros.CompileArgs) *Compile {
         .name = "zstd",
         .root_module = b.createModule(std_module_opts),
         .linkage = opts.linkage,
-        .use_llvm = true,
     });
 
     zstd.addIncludePath(upstream.path("lib/common"));

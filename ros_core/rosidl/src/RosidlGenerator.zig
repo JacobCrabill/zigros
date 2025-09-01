@@ -169,8 +169,8 @@ pub const Interface = struct {
         utils.writeAmentPackageXml(b, self.package_name);
 
         // The resource index must also list all .msg and .idl files from the package
-        var files = std.ArrayListUnmanaged([]const u8).initCapacity(b.allocator, self.write_files.files.items.len) catch @panic("OOM");
-        var idl_files = std.ArrayListUnmanaged([]const u8).initCapacity(b.allocator, self.write_files.files.items.len) catch @panic("OOM");
+        var files = std.ArrayList([]const u8).initCapacity(b.allocator, self.write_files.files.items.len) catch @panic("OOM");
+        var idl_files = std.ArrayList([]const u8).initCapacity(b.allocator, self.write_files.files.items.len) catch @panic("OOM");
         defer files.deinit(b.allocator);
         defer {
             for (idl_files.items) |file| {
