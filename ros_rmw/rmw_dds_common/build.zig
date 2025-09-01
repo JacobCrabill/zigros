@@ -73,7 +73,7 @@ pub fn buildWithArgs(b: *std.Build, args: CompileArgs, deps: Deps, build_deps: B
     rmw_dds_common.linkLibrary(deps.rosidl_runtime_c);
     // rmw_dds_common.installLibraryHeaders(deps.rosidl_runtime_c);
 
-    rmw_dds_common_interfaces.artifacts.link(rmw_dds_common);
+    rmw_dds_common_interfaces.artifacts.link(rmw_dds_common.root_module);
 
     rmw_dds_common.addIncludePath(upstream.path("rmw_dds_common/include"));
 

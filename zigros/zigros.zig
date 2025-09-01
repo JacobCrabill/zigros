@@ -25,8 +25,8 @@ pub fn linkDependencyStruct(step: *std.Build.Step.Compile, dependencies: anytype
             step.addIncludePath(@field(dependencies, field.name));
         } else if (field.type == Interface) {
             switch (lang) {
-                .c => @field(dependencies, field.name).linkC(step),
-                .cpp => @field(dependencies, field.name).link(step),
+                .c => @field(dependencies, field.name).linkC(step.root_module),
+                .cpp => @field(dependencies, field.name).link(step.root_module),
             }
         }
     }

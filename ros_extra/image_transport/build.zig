@@ -59,10 +59,8 @@ pub fn buildWithArgs(
     image_transport.linkLibrary(deps.pluginlib_lib);
     image_transport.linkLibrary(deps.rclcpp);
     image_transport.linkLibrary(deps.rclcpp_components);
-    deps.std_msgs.linkC(image_transport);
-    deps.std_msgs.linkCpp(image_transport);
-    deps.sensor_msgs.linkC(image_transport);
-    deps.sensor_msgs.linkCpp(image_transport);
+    deps.std_msgs.stepLink(image_transport.root_module);
+    deps.sensor_msgs.stepLink(image_transport.root_module);
 
     // TODO: OpenCV
     utils.includeOpenCv(image_transport, args.target);

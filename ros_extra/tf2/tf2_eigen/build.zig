@@ -68,16 +68,16 @@ pub fn buildWithArgs(b: *std.Build, deps: Deps, args: zigros.CompileArgs) *Compi
     });
     tf2_eigen.addIncludePath(deps.eigen.path(""));
 
-    deps.action_msgs.link(tf2_eigen);
-    deps.builtin_interfaces.link(tf2_eigen);
-    deps.geometry_msgs.link(tf2_eigen);
-    deps.rcl_interfaces.link(tf2_eigen);
-    deps.service_msgs.link(tf2_eigen);
-    deps.statistics_msgs.link(tf2_eigen);
-    deps.std_msgs.link(tf2_eigen);
-    deps.tf2_msgs.link(tf2_eigen);
-    deps.unique_identifier_msgs.link(tf2_eigen);
-    deps.type_description_interfaces.link(tf2_eigen);
+    deps.action_msgs.stepLink(tf2_eigen);
+    deps.builtin_interfaces.stepLink(tf2_eigen);
+    deps.geometry_msgs.stepLink(tf2_eigen);
+    deps.rcl_interfaces.stepLink(tf2_eigen);
+    deps.service_msgs.stepLink(tf2_eigen);
+    deps.statistics_msgs.stepLink(tf2_eigen);
+    deps.std_msgs.stepLink(tf2_eigen);
+    deps.tf2_msgs.stepLink(tf2_eigen);
+    deps.unique_identifier_msgs.stepLink(tf2_eigen);
+    deps.type_description_interfaces.stepLink(tf2_eigen);
 
     tf2_eigen.linkLibrary(deps.class_loader);
     tf2_eigen.linkLibrary(deps.console_bridge);

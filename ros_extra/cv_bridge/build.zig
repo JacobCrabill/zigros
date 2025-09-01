@@ -43,10 +43,10 @@ pub fn getLibrary(b: *std.Build, zigros: *const zr.ZigRos, opts: utils.BuildOpts
     utils.includeOpenCv(cv_bridge, opts.target);
 
     zigros.linkRclcpp(cv_bridge);
-    zigros.ros_libraries.std_msgs.linkC(cv_bridge);
-    zigros.ros_libraries.std_msgs.linkCpp(cv_bridge);
-    zigros.ros_libraries.sensor_msgs.linkC(cv_bridge);
-    zigros.ros_libraries.sensor_msgs.linkCpp(cv_bridge);
+    zigros.ros_libraries.std_msgs.linkC(cv_bridge.root_module);
+    zigros.ros_libraries.std_msgs.linkCpp(cv_bridge.root_module);
+    zigros.ros_libraries.sensor_msgs.linkC(cv_bridge.root_module);
+    zigros.ros_libraries.sensor_msgs.linkCpp(cv_bridge.root_module);
 
     cv_bridge.installHeadersDirectory(
         vision_opencv.path("cv_bridge/include"),

@@ -56,9 +56,9 @@ pub fn buildWithArgs(b: *std.Build, deps: Deps, opts: zigros.CompileArgs) *Compi
     });
     tf2.linkLibrary(deps.rcutils);
     tf2.linkLibrary(deps.rosidl_runtime_c);
-    deps.builtin_interfaces.link(tf2);
-    deps.std_msgs.link(tf2);
-    deps.geometry_msgs.link(tf2);
+    deps.builtin_interfaces.stepLink(tf2);
+    deps.std_msgs.stepLink(tf2);
+    deps.geometry_msgs.stepLink(tf2);
     tf2.addIncludePath(deps.rosidl_runtime_cpp);
     tf2.addIncludePath(deps.rosidl_typesupport_interface);
 

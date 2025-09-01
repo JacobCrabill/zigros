@@ -64,16 +64,16 @@ pub fn buildWithArgs(b: *std.Build, deps: Deps, opts: zigros.CompileArgs) Artifa
         },
         .flags = &.{ "--std=c++17", "-Wall", "-Wextra", "-Werror", "-Wpedantic", "-Wno-deprecated" },
     });
-    deps.action_msgs.link(camera_calibration_parsers);
-    deps.builtin_interfaces.link(camera_calibration_parsers);
-    deps.geometry_msgs.link(camera_calibration_parsers);
-    deps.rcl_interfaces.link(camera_calibration_parsers);
-    deps.sensor_msgs.link(camera_calibration_parsers);
-    deps.service_msgs.link(camera_calibration_parsers);
-    deps.statistics_msgs.link(camera_calibration_parsers);
-    deps.std_msgs.link(camera_calibration_parsers);
-    deps.type_description_interfaces.link(camera_calibration_parsers);
-    deps.unique_identifier_msgs.link(camera_calibration_parsers);
+    deps.action_msgs.stepLink(camera_calibration_parsers);
+    deps.builtin_interfaces.stepLink(camera_calibration_parsers);
+    deps.geometry_msgs.stepLink(camera_calibration_parsers);
+    deps.rcl_interfaces.stepLink(camera_calibration_parsers);
+    deps.sensor_msgs.stepLink(camera_calibration_parsers);
+    deps.service_msgs.stepLink(camera_calibration_parsers);
+    deps.statistics_msgs.stepLink(camera_calibration_parsers);
+    deps.std_msgs.stepLink(camera_calibration_parsers);
+    deps.type_description_interfaces.stepLink(camera_calibration_parsers);
+    deps.unique_identifier_msgs.stepLink(camera_calibration_parsers);
 
     camera_calibration_parsers.linkLibrary(deps.class_loader);
     camera_calibration_parsers.linkLibrary(deps.console_bridge);
@@ -110,17 +110,17 @@ pub fn buildWithArgs(b: *std.Build, deps: Deps, opts: zigros.CompileArgs) Artifa
         .flags = &.{ "--std=c++17", "-Wall", "-Wextra", "-Werror", "-Wpedantic", "-Wno-deprecated" },
     });
 
-    deps.action_msgs.link(camera_info_manager);
-    deps.builtin_interfaces.link(camera_info_manager);
-    deps.geometry_msgs.link(camera_info_manager);
-    deps.lifecycle_msgs.link(camera_info_manager);
-    deps.rcl_interfaces.link(camera_info_manager);
-    deps.sensor_msgs.link(camera_info_manager);
-    deps.service_msgs.link(camera_info_manager);
-    deps.statistics_msgs.link(camera_info_manager);
-    deps.std_msgs.link(camera_info_manager);
-    deps.type_description_interfaces.link(camera_info_manager);
-    deps.unique_identifier_msgs.link(camera_info_manager);
+    deps.action_msgs.stepLink(camera_info_manager);
+    deps.builtin_interfaces.stepLink(camera_info_manager);
+    deps.geometry_msgs.stepLink(camera_info_manager);
+    deps.lifecycle_msgs.stepLink(camera_info_manager);
+    deps.rcl_interfaces.stepLink(camera_info_manager);
+    deps.sensor_msgs.stepLink(camera_info_manager);
+    deps.service_msgs.stepLink(camera_info_manager);
+    deps.statistics_msgs.stepLink(camera_info_manager);
+    deps.std_msgs.stepLink(camera_info_manager);
+    deps.type_description_interfaces.stepLink(camera_info_manager);
+    deps.unique_identifier_msgs.stepLink(camera_info_manager);
 
     camera_info_manager.linkLibrary(deps.class_loader);
     camera_info_manager.linkLibrary(deps.console_bridge);

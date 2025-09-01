@@ -346,7 +346,7 @@ pub fn buildWithArgs(b: *std.Build, msg_deps: MsgDeps, deps: Deps, mcap_deps: Mc
     rosbag2_transport.linkLibrary(rosbag2_storage);
     rosbag2_transport.linkLibrary(rosbag2_cpp);
     rosbag2_transport.linkLibrary(rosbag2_compression);
-    rosbag2_interfaces.artifacts.link(rosbag2_transport);
+    rosbag2_interfaces.artifacts.link(rosbag2_transport.root_module);
     zigros.linkDependencyStruct(rosbag2_transport, deps, .cpp);
     zigros.linkDependencyStruct(rosbag2_transport, transport_deps, .cpp);
 

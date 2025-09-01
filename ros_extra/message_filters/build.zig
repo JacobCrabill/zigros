@@ -32,8 +32,7 @@ pub fn buildWithArgs(b: *std.Build, deps: Deps, args: zigros.CompileArgs) *Compi
         .files = &.{"connection.cpp"},
         .flags = &.{ "--std=c++17", "-Wall", "-Wextra", "-Wpedantic" },
     });
-    deps.std_msgs.linkC(message_filters);
-    deps.std_msgs.linkCpp(message_filters);
+    deps.std_msgs.stepLink(message_filters);
 
     message_filters.installHeadersDirectory(
         upstream.path("include"),

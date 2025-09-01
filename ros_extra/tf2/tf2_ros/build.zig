@@ -71,16 +71,16 @@ pub fn buildWithArgs(b: *std.Build, deps: Deps, args: zigros.CompileArgs) *Compi
         },
     });
 
-    deps.action_msgs.link(tf2_ros);
-    deps.builtin_interfaces.link(tf2_ros);
-    deps.geometry_msgs.link(tf2_ros);
-    deps.rcl_interfaces.link(tf2_ros);
-    deps.service_msgs.link(tf2_ros);
-    deps.statistics_msgs.link(tf2_ros);
-    deps.std_msgs.link(tf2_ros);
-    deps.tf2_msgs.link(tf2_ros);
-    deps.unique_identifier_msgs.link(tf2_ros);
-    deps.type_description_interfaces.link(tf2_ros);
+    deps.action_msgs.stepLink(tf2_ros);
+    deps.builtin_interfaces.stepLink(tf2_ros);
+    deps.geometry_msgs.stepLink(tf2_ros);
+    deps.rcl_interfaces.stepLink(tf2_ros);
+    deps.service_msgs.stepLink(tf2_ros);
+    deps.statistics_msgs.stepLink(tf2_ros);
+    deps.std_msgs.stepLink(tf2_ros);
+    deps.tf2_msgs.stepLink(tf2_ros);
+    deps.unique_identifier_msgs.stepLink(tf2_ros);
+    deps.type_description_interfaces.stepLink(tf2_ros);
 
     tf2_ros.linkLibrary(deps.class_loader);
     tf2_ros.linkLibrary(deps.console_bridge);

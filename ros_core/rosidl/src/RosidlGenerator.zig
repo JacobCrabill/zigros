@@ -86,15 +86,28 @@ pub const Interface = struct {
     typesupport_fastrtps_c: *Compile,
     typesupport_fastrtps_cpp: *Compile,
 
+    pub fn stepLink(self: Interface, target: *Compile) void {
+        self.linkC(target.root_module);
+        self.linkCpp(target.root_module);
+    }
+
+    pub fn stepLinkC(self: Interface, target: *Compile) void {
+        self.linkC(target.root_module);
+    }
+
+    pub fn stepLinkCpp(self: Interface, target: *Compile) void {
+        self.linkCpp(target.root_module);
+    }
+
     /// Link the 'target' to this interface's libraries
-    pub fn link(self: Interface, target: *Compile) void {
+    pub fn link(self: Interface, target: *Module) void {
         self.linkC(target);
         self.linkCpp(target);
     }
 
-    // Link 'target' against only the c libraries. In theory useful for rcl only builds
-    // though all rmw implementations require c++ so in practice not that useful
-    pub fn linkC(self: Interface, target: *Compile) void {
+    /// Link 'target' against only the c libraries. In theory useful for rcl only builds.
+    /// though all rmw implementations require c++ so in practice not that useful
+    pub fn linkC(self: Interface, target: *Module) void {
         target.linkLibrary(self.interface_c);
         target.linkLibrary(self.typesupport_c);
         target.linkLibrary(self.typesupport_introspection_c);
@@ -109,7 +122,7 @@ pub const Interface = struct {
     // Note this function should only be used if linkC has been called previously
     // on the same module, otherwise the standard link function should be used.
     // Use the normal public link function for general c++ linking
-    pub fn linkCpp(self: Interface, target: *Compile) void {
+    pub fn linkCpp(self: Interface, target: *Module) void {
         target.linkLibrary(self.typesupport_cpp);
         target.linkLibrary(self.typesupport_introspection_cpp);
         // TODO: might not want to direclty link this, since RMW will call dlopen()?
@@ -573,14 +586,14 @@ pub fn addInterfaces(
 pub fn addDependency(self: *RosidlGenerator, name: []const u8, dependency: Interface) void {
     self.type_description.addIncludePath(name, dependency.share);
 
-    dependency.linkC(self.generator_c.artifact);
-    dependency.linkC(self.typesupport_c.artifact);
-    dependency.linkC(self.typesupport_introspection_c.artifact);
-    dependency.linkC(self.typesupport_fastrtps_c.artifact);
+    dependency.stepLinkC(self.generator_c.artifact);
+    dependency.stepLinkC(self.typesupport_c.artifact);
+    dependency.stepLinkC(self.typesupport_introspection_c.artifact);
+    dependency.stepLinkC(self.typesupport_fastrtps_c.artifact);
 
-    dependency.link(self.typesupport_cpp.artifact);
-    dependency.link(self.typesupport_introspection_cpp.artifact);
-    dependency.link(self.typesupport_fastrtps_cpp.artifact);
+    dependency.stepLink(self.typesupport_cpp.artifact);
+    dependency.stepLink(self.typesupport_introspection_cpp.artifact);
+    dependency.stepLink(self.typesupport_fastrtps_cpp.artifact);
 }
 
 const PythonArguments = union(enum) {
