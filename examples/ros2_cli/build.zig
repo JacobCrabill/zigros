@@ -13,7 +13,7 @@ pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
     const linkage = b.option(std.builtin.LinkMode, "linkage", "Specify static or dynamic linkage") orelse .static;
-    const rmw = b.option(utils.RmwKind, "rmw", "ROS MiddleWare to use. NOTE: FastRTPS not yet working!") orelse .cyclonedds;
+    const rmw = b.option(zr.RmwKind, "rmw", "ROS MiddleWare to use. NOTE: FastRTPS not yet working!") orelse .cyclonedds;
     const strip = b.option(bool, "strip", "Strip debug info from binaries (Default: true for non-Debug builds)") orelse (optimize != .Debug);
 
     // Check the ABI to determine compability with certain features like shared-memory

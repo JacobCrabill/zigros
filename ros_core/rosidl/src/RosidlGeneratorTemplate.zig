@@ -269,7 +269,7 @@ pub fn CodeGenerator(
                         .root_module = b.createModule(.{
                             .target = compile_args.target,
                             .optimize = compile_args.optimize,
-                            // .pic = if (compile_args.linkage == .dynamic) true else null,
+                            .strip = true,
                             .pic = true,
                         }),
                         // TODO: Configure based on the RMW implementation.
