@@ -231,8 +231,8 @@
             .hash = "N-V-__8AANPCCABJ812aZO1FicLQy03KMHkSX0uUYOkdn8v4",
         },
         .dynmsg = .{
-            .url = "https://github.com/JacobCrabill/dynamic_message_introspection/archive/4a7a46a884bb8a7e71a0a44170b39f99b3667566.tar.gz",
-            .hash = "N-V-__8AAJd5BABDvmKG9v-H2vyu-OW3ICY3_Dc25UWJ_x9c",
+            .url = "https://github.com/JacobCrabill/dynamic_message_introspection/archive/d57ff5d61acd4d70bc9b1d8279ce45d618e1d20a.tar.gz",
+            .hash = "N-V-__8AAKV5BAAh82c-lNXVGl2ySXStia2RWvl5ztG-QODg",
         },
         .geometry2 = .{ // tf2 libraries
             .url = "https://github.com/ros2/geometry2/archive/2ab06cfe06d3ccae87f3d27ba5b1968b295caa2d.tar.gz",
