@@ -130,10 +130,10 @@ pub const Rcl = struct {
     rosidl_dynamic_typesupport: *Compile,
 
     // Interfaces
-    rcl_interfaces: Interface,
-    type_description_interfaces: Interface,
-    service_msgs: Interface,
     builtin_interfaces: Interface,
+    rcl_interfaces: Interface,
+    service_msgs: Interface,
+    type_description_interfaces: Interface,
 
     pub fn link(self: Rcl, mod: *Module) void {
         mod.addIncludePath(self.rosidl_typesupport_interface);

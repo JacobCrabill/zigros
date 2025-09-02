@@ -44,6 +44,10 @@ const keyboard = @import("ros_extra/keyboard/build.zig");
 pub const RosidlGenerator = @import("ros_core/rosidl/src/RosidlGenerator.zig");
 
 pub const utils = @import("build_utils.zig");
+pub const RmwKind = zigros.RmwKind;
+pub const Rmw = zigros.Rmw;
+pub const Rcl = zigros.Rcl;
+pub const Rclcpp = zigros.Rclcpp;
 
 const LazyPath = std.Build.LazyPath;
 const Dependency = std.Build.Dependency;
@@ -941,32 +945,22 @@ pub fn build(b: *std.Build) void {
     ros_libraries.message_filters = message_filters.buildWithArgs(b, .{ .std_msgs = ros_libraries.std_msgs }, compile_args);
 
     const rcl_libs: zigros.Rcl = .{
-        .rosidl_typesupport_interface = ros_libraries.rosidl_typesupport_interface,
-        .rcutils = ros_libraries.rcutils,
         .rcl = ros_libraries.rcl,
         .rcl_action = ros_libraries.rcl_action,
         .rcl_lifecycle = ros_libraries.rcl_lifecycle,
-        .rmw = ros_libraries.rmw,
         .rcl_yaml_param_parser = ros_libraries.rcl_yaml_param_parser,
-        .yaml = ros_libraries.yaml,
-        .rosidl_runtime_c = ros_libraries.rosidl_runtime_c,
-        .rosidl_dynamic_typesupport = ros_libraries.rosidl_dynamic_typesupport,
-        .rcl_interfaces = ros_libraries.rcl_interfaces,
-        .type_description_interfaces = ros_libraries.type_description_interfaces,
-        .service_msgs = ros_libraries.service_msgs,
-        .builtin_interfaces = ros_libraries.builtin_interfaces,
-    };
-
-    ros_libraries.dynmsg = dynmsg.buildWithArgs(b, .{
-        .yaml_cpp = ros_libraries.yaml_cpp,
         .rcutils = ros_libraries.rcutils,
+        .rmw = ros_libraries.rmw,
+        .rosidl_dynamic_typesupport = ros_libraries.rosidl_dynamic_typesupport,
         .rosidl_runtime_c = ros_libraries.rosidl_runtime_c,
-        .rosidl_typesupport_introspection_c = ros_libraries.rosidl_typesupport_introspection_c,
-        .rosidl_typesupport_introspection_cpp = ros_libraries.rosidl_typesupport_introspection_cpp,
-        .rosidl_runtime_cpp = ros_libraries.rosidl_runtime_cpp,
         .rosidl_typesupport_interface = ros_libraries.rosidl_typesupport_interface,
-        .rcl = rcl_libs,
-    }, compile_args);
+        .yaml = ros_libraries.yaml,
+        // Interfaces
+        .builtin_interfaces = ros_libraries.builtin_interfaces,
+        .rcl_interfaces = ros_libraries.rcl_interfaces,
+        .service_msgs = ros_libraries.service_msgs,
+        .type_description_interfaces = ros_libraries.type_description_interfaces,
+    };
 
     // Currently, due to MUSL libC limitations around pthreads,
     // Iceoryx shared-memory is only supported for GNU libC
@@ -1105,25 +1099,29 @@ pub fn build(b: *std.Build) void {
 
     const rclcpp_artifacts = rclcpp.buildWithArgs(b, compile_args, .{
         .upstream = upstream_dependencies.rclcpp,
-        .class_loader = ros_libraries.class_loader,
-        .rcutils = ros_libraries.rcutils,
+        // RCL Libraries
+        // TODO: use rcl_libs: zigros.Rcl
         .rcl = ros_libraries.rcl,
         .rcl_action = ros_libraries.rcl_action,
         .rcl_lifecycle = ros_libraries.rcl_lifecycle,
         .rcl_yaml_param_parser = ros_libraries.rcl_yaml_param_parser,
-        .rcl_logging_interface = ros_libraries.rcl_logging_interface,
-        .yaml = ros_libraries.yaml,
+        .rcutils = ros_libraries.rcutils,
         .rmw = ros_libraries.rmw,
         .rosidl_dynamic_typesupport = ros_libraries.rosidl_dynamic_typesupport,
         .rosidl_runtime_c = ros_libraries.rosidl_runtime_c,
         .rosidl_typesupport_interface = ros_libraries.rosidl_typesupport_interface,
-        .tracetools = ros_libraries.tracetools,
-        .type_description_interfaces = ros_libraries.type_description_interfaces,
-        .service_msgs = ros_libraries.service_msgs,
-        .action_msgs = ros_libraries.action_msgs,
-        .unique_identifier_msgs = ros_libraries.unique_identifier_msgs,
+        .yaml = ros_libraries.yaml,
         .builtin_interfaces = ros_libraries.builtin_interfaces,
         .rcl_interfaces = ros_libraries.rcl_interfaces,
+        .service_msgs = ros_libraries.service_msgs,
+        .type_description_interfaces = ros_libraries.type_description_interfaces,
+        // ^ all above are in zigros.Rcl
+        // other deps
+        .rcl_logging_interface = ros_libraries.rcl_logging_interface,
+        .class_loader = ros_libraries.class_loader,
+        .tracetools = ros_libraries.tracetools,
+        .action_msgs = ros_libraries.action_msgs,
+        .unique_identifier_msgs = ros_libraries.unique_identifier_msgs,
         .rcpputils = ros_libraries.rcpputils,
         .rosidl_runtime_cpp = ros_libraries.rosidl_runtime_cpp,
         .rosidl_typesupport_introspection_cpp = ros_libraries.rosidl_typesupport_introspection_cpp,
@@ -1403,6 +1401,18 @@ pub fn build(b: *std.Build) void {
             .cyclonedds = ros_libraries.cyclonedds,
         } },
     };
+
+    ros_libraries.dynmsg = dynmsg.buildWithArgs(b, .{
+        .yaml_cpp = ros_libraries.yaml_cpp,
+        .rcutils = ros_libraries.rcutils,
+        .rosidl_runtime_c = ros_libraries.rosidl_runtime_c,
+        .rosidl_typesupport_introspection_c = ros_libraries.rosidl_typesupport_introspection_c,
+        .rosidl_typesupport_introspection_cpp = ros_libraries.rosidl_typesupport_introspection_cpp,
+        .rosidl_runtime_cpp = ros_libraries.rosidl_runtime_cpp,
+        .rosidl_typesupport_interface = ros_libraries.rosidl_typesupport_interface,
+        .rcl = rcl_libs,
+    }, compile_args);
+
     const ros2 = @import("zigros/ros2/build.zig").buildWithArgs(b, .{
         .dynmsg = ros_libraries.dynmsg,
         .yaml_cpp = ros_libraries.yaml_cpp,
