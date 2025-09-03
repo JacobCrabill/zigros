@@ -113,10 +113,10 @@ pub fn writeLocalSetupSh(b: *std.Build, rmw: RmwKind, extra: []const u8) void {
         \\#!/usr/bin/env /bash
         \\export ZIGROS_INSTALL_ROOT=$(dirname $(realpath ${BASH_SOURCE[0]}))
         \\export AMENT_PREFIX_PATH=${ZIGROS_INSTALL_ROOT}
-        \\export PATH=${PATH}:${ZIGROS_INSTALL_ROOT}/bin/
+        \\export PATH=${ZIGROS_INSTALL_ROOT}/bin/:${PATH}
         \\export LD_LIBRARY_PATH=${ZIGROS_INSTALL_ROOT}/lib/
         \\export ROS_DISTRO=jazzy
-        \\export ROS_LOG_DIR=${ROS_LOG_DIR:-/data/logs/ros}
+        \\export ROS_LOG_DIR=${ROS_LOG_DIR:-/data/logs/ros_logs}
     ;
     const rmw_export = switch (rmw) {
         .cyclonedds => "export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp",
@@ -189,7 +189,7 @@ pub fn addRosPackage(b: *std.Build, opts: RosPackageOptions) void {
 ///
 /// If you need custom setup of your test (such as custom runtime arguments),
 /// copy-paste the contents of this function and adjust as needed.
-pub fn setupUnitTest(b: *std.Build, run_tests_step: *std.Build.Step, test_exe: *std.Build.Step.Compile) void {
+pub fn setupUnitTest(b: *std.Build, run_tests_step: *std.Build.Step, test_exe: *std.Build.Step.Compile, rmw: RmwKind) void {
     const test_exe_install = b.addInstallArtifact(test_exe, .{
         .dest_dir = .{ .override = .{ .custom = "test" } },
     });
@@ -199,6 +199,25 @@ pub fn setupUnitTest(b: *std.Build, run_tests_step: *std.Build.Step, test_exe: *
     // Set the AMENT_PREFIX_PATH env var so it can find the installed paramter files
     const run_test_exe = b.addRunArtifact(test_exe);
     run_test_exe.setEnvironmentVariable("AMENT_PREFIX_PATH", b.install_path);
+    run_test_exe.setEnvironmentVariable("ROS_DISTRO", "jazzy");
+    run_test_exe.setEnvironmentVariable("ROS_LOG_DIR", "/data/logs/ros_logs");
+
+    // Prepend the relevant directories to both PATH and LD_LIBRARY_PATH
+    const env_map: *const std.process.EnvMap = run_test_exe.getEnvMap();
+
+    const PATH = env_map.get("PATH") orelse "";
+    const LD_LIBRARY_PATH = env_map.get("LD_LIBRARY_PATH") orelse "";
+    run_test_exe.setEnvironmentVariable("PATH", b.fmt("{s}/bin:{s}", .{ b.install_path, PATH }));
+    run_test_exe.setEnvironmentVariable("LD_LIBRARY_PATH", b.fmt("{s}/lib:{s}", .{ b.install_path, LD_LIBRARY_PATH }));
+
+    switch (rmw) {
+        .cyclonedds => run_test_exe.setEnvironmentVariable("RMW_IMPLEMENTATION", "rmw_cyclonedds_cpp"),
+        .fastrtps => run_test_exe.setEnvironmentVariable("RMW_IMPLEMENTATION", "rmw_fastrtps_cpp"),
+        .zenoh => run_test_exe.setEnvironmentVariable("RMW_IMPLEMENTATION", "rmw_zenoh_cpp"),
+    }
+
+    run_tests_step.dependOn(b.getInstallStep());
+    run_tests_step.dependOn(&test_exe_install.step);
     run_tests_step.dependOn(&run_test_exe.step);
 }
 
