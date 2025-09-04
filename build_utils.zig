@@ -116,6 +116,8 @@ pub fn writeLocalSetupSh(b: *std.Build, rmw: RmwKind, extra: []const u8) void {
         \\export PATH=${ZIGROS_INSTALL_ROOT}/bin/:${PATH}
         \\export LD_LIBRARY_PATH=${ZIGROS_INSTALL_ROOT}/lib/
         \\export ROS_DISTRO=jazzy
+        \\export ROS_VERSION=2
+        \\export ROS_ROOT=${AMENT_PREFIX_PATH}
         \\export ROS_LOG_DIR=${ROS_LOG_DIR:-/data/logs/ros_logs}
     ;
     const rmw_export = switch (rmw) {
