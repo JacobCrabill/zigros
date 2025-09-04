@@ -14,9 +14,9 @@ Lets have a look at what it takes to build ROS via zig.
 The following script downloads zig and an example node using ZigROS builds it, then runs it.
 
 ```sh
-wget -qO- https://ziglang.org/download/0.14.0/zig-linux-x86_64-0.14.0.tar.xz | tar xJv
+wget -qO- https://ziglang.org/download/0.14.0/zig-linux-x86_64-0.15.1.tar.xz | tar xJv
 wget -qO- https://github.com/zig-robotics/rclcpp_example/archive/refs/heads/main.tar.gz | tar xzv
-cd rclcpp_example-main; ../zig-linux-x86_64-0.14.0/zig build -Doptimize=ReleaseFast -Dtarget=x86_64-linux-musl --summary none  
+cd rclcpp_example-main; ../zig-linux-x86_64-0.15.1/zig build -Doptimize=ReleaseFast -Dtarget=x86_64-linux-musl --summary none  
 ./zig-out/bin/node
 ```
 
@@ -32,7 +32,7 @@ Note that this dockerfile is provided for demonstration purposes only, I encoura
 
 A few other highlights of the zig build system includes cross compilation.
 If you're ready to deploy to an embedded target, typically you need an arm build.
-That comes for free with zig, simply change the triplet from x86_64 to aarch64 or any other architecture.
+That comes for free with zig, simply change the triplet from `x86_64` to aarch64 or any other architecture.
 
 Similarly if you're worried about potential down sides of musl, you can build against glibc still by changing musl to gnu.
 This will statically link everything except libc.

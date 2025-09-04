@@ -18,7 +18,7 @@ design of the project, [please head over to the docs folder.](docs)
 
 ## Getting started
 
-This assumes you have zig 0.14.0 installed on your system and an rclcpp ROS node to build. The first
+This assumes you have zig 0.15.1 installed on your system and an rclcpp ROS node to build. The first
 few steps aren't any different from how you would typically build a C project with zig. Start by
 adding a build.zig and a build.zig.zon file to the root of your ROS package. Add ZigROS as a
 dependency in your build.zig.zon. Add your ROS source files as an executable in the build.zig file.
@@ -28,12 +28,14 @@ of ROS packages and their dependencies. Because of this there needs to be a dedi
 step that looks like:
 
 ```zig
-    const zigros = ZigRos.init(b.dependency("zigros", .{
-        .target = target,
-        .optimize = optimize,
-        .linkage = linkage, // optional, will default to static
-        .@"system-python" = false, // optional, will default to false
-    })) orelse return; // return early if lazy deps are needed
+const zigros = ZigRos.init(b.dependency("zigros", .{
+    .target = target,
+    .optimize = optimize,
+    .linkage = linkage,        // optional, defaults to static
+    .strip = true,             // optional, defaults to (optimize != .Debug)
+    .@"system-python" = false, // optional, defaults to false
+    .rmw = .zenoh,             // optional, defaults to fastrtps
+})) orelse return; // return early if lazy deps are needed
 ```
 
 This will return a zigros object with helpers for linking, or null if one or more of its lazy
@@ -45,27 +47,26 @@ fine.
 You can then link your standard node executable with:
 
 ```zig
-    zigros.linkRclcpp(pub_sub_node); // Link rclcpp
-    zigros.linkRmwCycloneDds(pub_sub_node); // link your dds of choice
-    zigros.linkLoggerSpd(pub_sub_node); // link your logger of choice
+zigros.linkRclcpp(pub_sub_node);         // Link rclcpp
+zigros.linkRmw(pub_sub_node, .fastrtps); // link your dds of choice
+zigros.linkLoggerSpd(pub_sub_node);      // link your logger of choice
 ```
 
 Here the general pattern is:
 
 1. link rclcpp
-1. link your DDS of choice (for now only cyclone is supported)
-1. link your logger of choice (for now only spdlog is supported)
-
-The logger and DDS are typically runtime options, but with ZigROS's focus on static builds and
-deployments they are now compile time options. ROS2 supports statically linked DDSs as long as the
-interface generation is only done with a single type support. Multi typesupport / multi DDS support
-may be a future option, but would require additional glue to avoid calls to dlopen in the static
-build.
-[There's more info on this in the design doc if interested.](docs/Design.md#how-does-zigros-statically-link-with-rclcpp)
-
-There is also the option to link against only rcl with `zigros.linkRcl`.
-
-For a simple single file node, your build.zig file would look something like this:
+2. link your DDS of choice (for now only cyclone is supported)
+3. link your logger of choice (for now only spdlog is supported)
+4. The logger and DDS are typically runtime options, but with ZigROS's focus on static builds and
+5. deployments they are now compile time options. ROS2 supports statically linked DDSs as long as
+   the
+6. interface generation is only done with a single type support. Multi typesupport / multi DDS
+   support
+7. may be a future option, but would require additional glue to avoid calls to dlopen in the static
+8. build.
+9. [There's more info on this in the design doc if interested.](docs/Design.md#how-does-zigros-statically-link-with-rclcpp)
+10. There is also the option to link against only rcl with `zigros.linkRcl`.
+11. For a simple single file node, your build.zig file would look something like this:
 
 ```zig
 const std = @import("std");
@@ -112,7 +113,6 @@ pub fn build(b: *std.Build) void {
 
     b.installArtifact(pub_sub_node);
 }
-
 ```
 
 [See the example repo to see this in action.](https://github.com/zig-robotics/rclcpp_example)
@@ -135,21 +135,21 @@ Linking against rclcpp will get you the typical rcl interfaces. If your project 
 interfaces, you can build them using zigros's wrappers for rosidl.
 
 ```zig
-    var interface = zigros.createInterface(
-        b,
-        "zigros_example_interface",
-        .{ .target = target, .optimize = optimize, .linkage = linkage },
-    );
+var interface = zigros.createInterface(
+    b,
+    "zigros_example_interface",
+    .{ .target = target, .optimize = optimize, .linkage = linkage },
+);
 
-    interface.addInterfaces(b.path(""), &.{
-        "msg/Example.msg",
-        "srv/Example.srv",
-    });
+interface.addInterfaces(b.path(""), &.{
+    "msg/Example.msg",
+    "srv/Example.srv",
+});
 
-    // the example message uses the standard time message, so we must add builtin_interfaces
-    // as a dependency
-    interface.addDependency("builtin_interfaces", zigros.ros_libraries.builtin_interfaces);
-    interface.artifacts.linkCpp(pub_sub_node);
+// the example message uses the standard time message, so we must add builtin_interfaces
+// as a dependency
+interface.addDependency("builtin_interfaces", zigros.ros_libraries.builtin_interfaces);
+interface.artifacts.linkCpp(pub_sub_node);
 ```
 
 If you're creating a shared library or want this to function as an intermediate dependency, you can
@@ -169,11 +169,6 @@ specific timeline.
 
 ## Features I hope to have ready for ZigROS 0.3
 
-- Actions
-- Remaining interfaces from rcl_interfaces
-- All interfaces from common_interfaces
-- rosbag (at least a build of rosbag2_cpp for you to integrate with your projects manually, possibly
-  some helpers around it)
 - foxglove-bridge (as an example of a 3rd party library, also as an easy way into your project in
   the absence of the ros cli)
 
@@ -197,6 +192,9 @@ specific timeline.
   case)
   - This one likely isn't worth the hassle, deployments don't really use two RMWs at the same time,
     static linking a single RMW makes more sense.
+- Forking and modifying the most commont middleware to enable static linking
+  - FastRTPS and Zenoh _require_ dlopen in their typesupport
+  - FastRTPS has 2 or 3 layers of dynamic libraries that call each other to operate
 
 # A note on Python
 
@@ -216,6 +214,21 @@ other ROS developers or Zig fans to explore the merits and limitations to this a
 If there's enough interest, I'll organize a Zulip server for collaboration.
 
 # Changelog
+
+## Current Development
+
+- Update to zig 0.15.1
+- Add FastRTPS and Zenoh middleware
+  - Includes adding their typesupport libraries to the IDL generation
+- Dynamic linking now required due to those new typesupport libraries
+- rosbag2 libraries added
+  - Requires writing your own simple Recorder node in order to launch it without Python
+- Ament plugin support via resource index file creation
+- Added a `ros2` cli tool which implements most of the common features
+  - node, topic, and service list
+  - topic echo and pub
+  - package "launch" from a script
+  - run nodes in the ROS environment with standardized parameters
 
 ## 0.2.0
 
