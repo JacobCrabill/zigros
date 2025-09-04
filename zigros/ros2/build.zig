@@ -44,7 +44,7 @@ pub fn buildWithArgs(b: *std.Build, deps: Deps, args: zigros.CompileArgs) *Compi
     deps.rmw.link(ros2_mod);
 
     const ros2_cli = b.addExecutable(.{
-        .name = "ros2_zig",
+        .name = "ros2",
         .root_module = ros2_mod,
     });
     ros2_cli.bundle_compiler_rt = true;

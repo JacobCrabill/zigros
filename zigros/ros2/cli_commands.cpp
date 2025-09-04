@@ -20,88 +20,19 @@
 #include <rcl_action/graph.h>
 #include <rcutils/logging_macros.h>
 
+#include <stdint.h>
 #include <unistd.h>
 
 static constexpr uint64_t ROS2_DISCOVERY_DELAY_MS = 1000;
 
-// static rcl_node_t g_node;
-// static rcl_context_t g_context;
-
-int initialize_node(rcl_node_t* g_node, rcl_context_t* g_context)
-{
-  int argc = 1;
-  char* argv[] = {"ros2", NULL};
-
-  // Initialise the options for ROS
-  rcl_init_options_t options = rcl_get_zero_initialized_init_options();
-  rcl_ret_t ret = rcl_init_options_init(&options, rcl_get_default_allocator());
-  if (ret != RCL_RET_OK)
-  {
-    RCUTILS_LOG_ERROR_NAMED("ros2", "init options failed");
-    return 1;
-  }
-
-  // Initialise ROS itself
-  *g_context = rcl_get_zero_initialized_context();
-  ret = rcl_init(argc, argv, &options, g_context);
-  if (ret != RCL_RET_OK)
-  {
-    RCUTILS_LOG_ERROR_NAMED("ros2", "init failed");
-    return 1;
-  }
-
-  ret = rcl_init_options_fini(&options);
-  if (ret != RCL_RET_OK)
-  {
-    RCUTILS_LOG_ERROR_NAMED("ros2", "init_options fini failed");
-    return 1;
-  }
-
-  // Create a node to get access to the ROS graph, topics, etc.
-  RCUTILS_LOG_DEBUG_NAMED("ros2", "Creating node");
-  rcl_node_options_t node_options = rcl_node_get_default_options();
-  *g_node = rcl_get_zero_initialized_node();
-  ret = rcl_node_init(g_node, "clitool", "", g_context, &node_options);
-  if (ret != RCL_RET_OK)
-  {
-    RCUTILS_LOG_ERROR_NAMED("ros2", "node init failed");
-    return 1;
-  }
-
-  return 0;
-}
-
-void deinitialize_node(rcl_node_t* g_node, rcl_context_t* g_context)
-{
-  // Shut down and clean up
-  rcl_ret_t ret = rcl_node_fini(g_node);
-  if (ret != RCL_RET_OK)
-  {
-    RCUTILS_LOG_ERROR_NAMED("ros2", "node fini failed");
-    return;
-  }
-  ret = rcl_shutdown(g_context);
-  if (ret != RCL_RET_OK)
-  {
-    RCUTILS_LOG_ERROR_NAMED("ros2", "shutdown failed");
-    return;
-  }
-  ret = rcl_context_fini(g_context);
-  if (ret != RCL_RET_OK)
-  {
-    RCUTILS_LOG_ERROR_NAMED("ros2", "context fini failed");
-    return;
-  }
-}
-
 void list_nodes()
 {
   rclcpp::init(0, NULL);
+  rclcpp::Node::SharedPtr node = rclcpp::Node::make_shared("ros2");
 
-  rclcpp::Node::SharedPtr node = rclcpp::Node::make_shared("list_topics");
-
-  // Note: The discovery process takes some time, so after creating a brand-new node,
+  // Note: The discovery process in DDS takes some time, so after creating a brand-new node,
   // we must give it some time to perform discovery.
+  // Note: Zenoh does not have this problem.
   rclcpp::sleep_for(std::chrono::milliseconds(ROS2_DISCOVERY_DELAY_MS));
 
   const std::vector<std::string> nodes = node->get_node_names();
@@ -118,7 +49,7 @@ void list_topics()
 {
   rclcpp::init(0, NULL);
 
-  rclcpp::Node::SharedPtr node = rclcpp::Node::make_shared("list_topics");
+  rclcpp::Node::SharedPtr node = rclcpp::Node::make_shared("ros2");
 
   // Note: The discovery process takes some time, so after creating a brand-new node,
   // we must give it some time to perform discovery.
@@ -126,13 +57,12 @@ void list_topics()
 
   const std::map<std::string, std::vector<std::string>> topics_and_types = node->get_topic_names_and_types();
 
+  std::cout << "Topics:" << std::endl;
   for (const auto& entry : topics_and_types)
   {
-    std::cout << "Topic: '" << entry.first << "', Type:";
+    std::cout << entry.first;
     for (const auto& topic_type : entry.second)
-    {
-      std::cout << " '" << topic_type << "'";
-    }
+      std::cout << " [" << topic_type << "]";
     std::cout << std::endl;
   }
 
@@ -142,7 +72,6 @@ void list_topics()
 void list_services()
 {
   rclcpp::init(0, NULL);
-
   rclcpp::Node::SharedPtr node = rclcpp::Node::make_shared("list_services");
 
   // Note: The discovery process takes some time, so after creating a brand-new node,
@@ -170,27 +99,27 @@ void list_services()
 /// It then loads the type support and introspection information. The type support is used to
 /// subscribe to the topic and wait for a message. Upon reception of a message, the introspection
 /// library is used to read the binary data and convert it to a YAML representation.
-void echo_topic(const char* topic)
+void echo_topic(const char* topic, uint64_t count)
 {
-  std::cout << "Creating node..." << std::endl;
-  rcl_node_t g_node;
-  rcl_context_t g_context;
-  if (initialize_node(&g_node, &g_context) != 0)
-  {
-    RCUTILS_LOG_ERROR_NAMED("ros2", "Node init failed");
-    return;
-  }
-  std::cout << "Created node" << std::endl;
+  rclcpp::init(0, NULL);
+  rclcpp::Node::SharedPtr node = rclcpp::Node::make_shared("ros2");
+  rcl_node_t* node_t = node->get_node_base_interface()->get_rcl_node_handle();
 
-  InterfaceTypeName interface_type = get_topic_type(&g_node, topic);
+  // Note: The discovery process in DDS takes some time, so after creating a brand-new node,
+  // we must give it some time to perform discovery.
+  // Note: Zenoh does not have this problem.
+  rclcpp::sleep_for(std::chrono::milliseconds(ROS2_DISCOVERY_DELAY_MS));
+
+  InterfaceTypeName interface_type = get_topic_type(node_t, topic);
   if (interface_type.first == "" || interface_type.second == "")
   {
-    std::cout << "Unknown topic type '" << interface_type.first << '/' << interface_type.second << "'\n";
+    RCUTILS_LOG_WARN_NAMED("ros2", "Unkonwn topic type '%s/%s'", interface_type.first.c_str(),
+                           interface_type.second.c_str());
     return;
   }
 
-  std::cout << "Waiting for message on topic '" << topic << "' with type " << interface_type.first << '/'
-            << interface_type.second << '\n';
+  RCUTILS_LOG_DEBUG_NAMED("ros2", "Waiting for message on topic '%s' with type %s/%s", topic,
+                          interface_type.first.c_str(), interface_type.second.c_str());
 
   RosMessage message;
   if (DYNMSG_RET_OK != dynmsg::c::ros_message_init(interface_type, &message))
@@ -199,42 +128,47 @@ void echo_topic(const char* topic)
     return;
   }
 
-  RCUTILS_LOG_DEBUG_NAMED("ros2", "Creating subscription");
-  rcl_subscription_t sub = rcl_get_zero_initialized_subscription();
-  rcl_subscription_options_t sub_options = rcl_subscription_get_default_options();
+  RCUTILS_LOG_DEBUG_NAMED("ros2", "Finding Type Support");
   const auto* type_support = get_type_support(interface_type);
   if (type_support == nullptr)
   {
+    RCUTILS_LOG_WARN_NAMED("ros2", "Couldn't find typesupport handle for topic");
     return;
   }
-  auto ret = rcl_subscription_init(&sub, &g_node, type_support, topic, &sub_options);
+
+  RCUTILS_LOG_DEBUG_NAMED("ros2", "Creating subscription");
+  rcl_subscription_t sub = rcl_get_zero_initialized_subscription();
+  rcl_subscription_options_t sub_options = rcl_subscription_get_default_options();
+  auto ret = rcl_subscription_init(&sub, node_t, type_support, topic, &sub_options);
   if (ret != RCL_RET_OK)
   {
     RCUTILS_LOG_ERROR_NAMED("ros2", "subscription init failed");
     return;
   }
 
+  // Ensure a publisher exists for the topic
   while (true)
   {
-    size_t count{0};
-    ret = rmw_subscription_count_matched_publishers(rcl_subscription_get_rmw_handle(&sub), &count);
+    size_t pub_count{0};
+    ret = rmw_subscription_count_matched_publishers(rcl_subscription_get_rmw_handle(&sub), &pub_count);
     if (ret != RCL_RET_OK)
     {
       RCUTILS_LOG_ERROR_NAMED("ros2", "publisher count failed");
       return;
     }
-    RCUTILS_LOG_DEBUG_NAMED("ros2", "There are %ld matched publishers", count);
-    if (count > 0)
+    RCUTILS_LOG_DEBUG_NAMED("ros2", "There are %ld matched publishers", pub_count);
+    if (pub_count > 0)
     {
       break;
     }
     usleep(250'000);
   }
 
-  bool taken = false;
-  while (!taken)
+  // Subscribe to the toic and read <count> publications
+  size_t rx_count = 0;
+  while (true)
   {
-    taken = false;
+    bool taken = false;
     ret = rmw_take(rcl_subscription_get_rmw_handle(&sub), message.data, &taken, nullptr);
     if (ret != RCL_RET_OK)
     {
@@ -244,20 +178,24 @@ void echo_topic(const char* topic)
     if (taken)
     {
       RCUTILS_LOG_DEBUG_NAMED("ros2", "Received data");
-      break;
+      rx_count++;
+
+      std::cout << "--------" << std::endl << dynmsg::c::message_to_yaml(message) << '\n';
+
+      if (count > 0 and rx_count >= count)
+        break;
     }
   }
 
-  std::cout << dynmsg::c::message_to_yaml(message) << '\n';
+  ret = rcl_subscription_fini(&sub, node_t);
 
-  ret = rcl_subscription_fini(&sub, &g_node);
   if (ret != RCL_RET_OK)
   {
     RCUTILS_LOG_ERROR_NAMED("ros2", "subscription fini failed");
     return;
   }
 
-  deinitialize_node(&g_node, &g_context);
+  rclcpp::shutdown();
 }
 
 // Write the given ROS message (in YAML representation) to the specified topic.
@@ -269,48 +207,64 @@ void echo_topic(const char* topic)
 // interface type. It then converts the given YAML representation into a binary ROS message and
 // stores it in a byte buffer. The type support is used to create a publisher to the given topic
 // with the correct type, and then the ROS message is published to that topic ten times.
-int publish_to_topic(rcl_node_t* node, const std::string& topic, const InterfaceTypeName& interface_type,
-                     const std::string& message_yaml)
+void publish_topic(const char* topic, const char* package_name, const char* type_name, const char* message_yaml,
+                   uint64_t count)
 {
-  std::cout << "Publishing message on topic '" << topic << "' with type " << interface_type.first << '/'
-            << interface_type.second << '\n';
+  rclcpp::init(0, NULL);
+  rclcpp::Node::SharedPtr node = rclcpp::Node::make_shared("ros2");
+  rcl_node_t* node_t = node->get_node_base_interface()->get_rcl_node_handle();
+
+  // InterfaceTypeName interface_type = get_topic_type(node_t, topic);
+  const InterfaceTypeName interface_type =
+    std::make_pair<std::string, std::string>(std::string(package_name), std::string(type_name));
+  if (interface_type.first == "" || interface_type.second == "")
+  {
+    RCUTILS_LOG_WARN_NAMED("ros2", "Unkonwn topic type '%s/%s'", interface_type.first.c_str(),
+                           interface_type.second.c_str());
+    return;
+  }
+
+  RCUTILS_LOG_DEBUG_NAMED("ros2", "Publishing message on topic '%s' with type '%s/%s'", topic,
+                          interface_type.first.c_str(), interface_type.second.c_str());
 
   RosMessage message = dynmsg::c::yaml_to_rosmsg(interface_type, message_yaml);
 
   RCUTILS_LOG_DEBUG_NAMED("ros2", "Creating publisher");
+
   rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
   rcl_publisher_options_t pub_options = rcl_publisher_get_default_options();
   const auto* type_support = get_type_support(interface_type);
   if (type_support == nullptr)
   {
-    return 1;
+    return;
   }
-  auto ret = rcl_publisher_init(&pub, node, type_support, topic.c_str(), &pub_options);
+  auto ret = rcl_publisher_init(&pub, node_t, type_support, topic, &pub_options);
   if (ret != RCL_RET_OK)
   {
     RCUTILS_LOG_ERROR_NAMED("ros2", "subscription init failed");
-    return 1;
+    return;
   }
 
-  for (auto ii = 0; ii < 10; ++ii)
+  std::cout << "Publishing\n";
+  for (uint64_t ii = 0; ii < count; ++ii)
   {
-    std::cout << "Publishing\n";
     ret = rcl_publish(&pub, message.data, nullptr);
     if (ret != RCL_RET_OK)
     {
       RCUTILS_LOG_ERROR_NAMED("ros2", "failed to publish message");
-      return 1;
+      return;
     }
     sleep(1);
   }
 
-  ret = rcl_publisher_fini(&pub, node);
+  ret = rcl_publisher_fini(&pub, node_t);
   if (ret != RCL_RET_OK)
   {
     RCUTILS_LOG_ERROR_NAMED("ros2", "publisher fini failed");
-    return 1;
+    return;
   }
-  return 0;
+
+  rclcpp::shutdown();
 }
 
 // Print all known actions from the ROS graph to the terminal.
@@ -318,19 +272,15 @@ int publish_to_topic(rcl_node_t* node, const std::string& topic, const Interface
 // Only actions known about at the time this function is called will be printed. It is recommended
 // that some time be allowed to elapse (e.g. by calling a sleep) between calling rcl_init() and
 // this function. This gives the underlying discovery system some time to find actions.
-void print_actions(const rcl_node_t* node)
+void list_actions()
 {
-  rcl_node_t g_node;
-  rcl_context_t g_context;
-  if (initialize_node(&g_node, &g_context) != 0)
-  {
-    RCUTILS_LOG_ERROR_NAMED("ros2", "Node init failed");
-    return;
-  }
+  rclcpp::init(0, NULL);
+  rclcpp::Node::SharedPtr node = rclcpp::Node::make_shared("ros2");
+  rcl_node_t* node_t = node->get_node_base_interface()->get_rcl_node_handle();
 
   auto actions = rcl_get_zero_initialized_names_and_types();
   auto allocator = rcl_get_default_allocator();
-  auto ret = rcl_action_get_names_and_types(node, &allocator, &actions);
+  auto ret = rcl_action_get_names_and_types(node_t, &allocator, &actions);
   if (ret != RCL_RET_OK)
   {
     RCUTILS_LOG_ERROR_NAMED("ros2", "%s", rcl_get_error_string().str);
@@ -348,5 +298,5 @@ void print_actions(const rcl_node_t* node)
     return;
   }
 
-  deinitialize_node(&g_node, &g_context);
+  rclcpp::shutdown();
 }

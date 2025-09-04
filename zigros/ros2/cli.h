@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -40,7 +42,26 @@ void list_services();
  */
 void list_actions();
 
-void echo_topic(const char* topic_name);
+/**
+ * Subscribe to and print 'count' publications from the given topic name.
+ *
+ * A 'count' value of 0 means forever.
+ *
+ * If the topic is not advertised, this will fail. Otherwise, this will block
+ * until a publication is made.
+ */
+void echo_topic(const char* topic_name, uint64_t count);
+
+/**
+ * Publish a message on the given topic name.
+ *
+ * The provided YAML should match the advertised message type.
+ *
+ * The message should be defined in YAML syntax. The simplest way to provide
+ * valid YAML may be to provide it from a file on disk.
+ */
+void publish_topic(const char* topic_name, const char* package_name, const char* type_name, const char* message_yaml,
+                   uint64_t count);
 
 #ifdef __cplusplus
 }
