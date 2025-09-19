@@ -202,6 +202,10 @@ pub const PythonLibraries = struct {
     rosidl_typesupport_fastrtps_cpp: LazyPath,
 };
 
+pub const CliTools = struct {
+    ros2: *Compile,
+};
+
 //  Extracts the expected artifacts given a package name
 fn extractInterface(dep: *std.Build.Dependency, name: []const u8) RosidlGenerator.Interface {
     const b = dep.builder;
@@ -236,6 +240,7 @@ pub const ZigRos = struct {
     ros_libraries: RosLibraries,
     python_libraries: PythonLibraries,
     python: zigros.PythonDep,
+    cli_tools: CliTools,
     type_description_generator: *Compile,
     adapter_generator: *Compile,
     code_generator: *Compile,
@@ -383,6 +388,7 @@ pub const ZigRos = struct {
             .code_generator = dep.artifact("code_generator"),
             .zenohc_library_path = extra_paths.zenohc_library_path,
             .zenohc_include_path = extra_paths.zenohc_include_path,
+            .cli_tools = .{ .ros2 = dep.artifact("ros2") },
         };
     }
 
