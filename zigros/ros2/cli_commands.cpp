@@ -23,6 +23,8 @@
 #include <stdint.h>
 #include <unistd.h>
 
+#include "topic_rate_monitor.hpp"
+
 static constexpr uint64_t ROS2_DISCOVERY_DELAY_MS = 1000;
 
 void list_nodes()
@@ -195,6 +197,18 @@ void echo_topic(const char* topic, uint64_t count)
     return;
   }
 
+  rclcpp::shutdown();
+}
+
+/// Monitor the publication rate of the given topic
+///
+/// We use a custom node here in order to have two main activities running in parallel:
+/// the topic publication count, and a periodic timer to display topic statistics.
+void hz_topic(const char* topic)
+{
+  rclcpp::init(0, NULL);
+  auto node = std::make_shared<TopicRateMonitor>(topic);
+  rclcpp::spin(node);
   rclcpp::shutdown();
 }
 

@@ -53,6 +53,11 @@ void list_actions();
 void echo_topic(const char* topic_name, uint64_t count);
 
 /**
+ * Monitor the publication rate of the given topic
+ */
+void hz_topic(const char* topic_name);
+
+/**
  * Publish a message on the given topic name.
  *
  * The provided YAML should match the advertised message type.

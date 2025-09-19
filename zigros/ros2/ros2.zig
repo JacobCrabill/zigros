@@ -34,6 +34,14 @@ const Flags = struct {
         topic: struct {
             command: union(enum) {
                 list: struct {},
+                hz: struct {
+                    positional: struct {
+                        topic: []const u8,
+                        pub const descriptions = .{
+                            .topic = "Topic name to echo",
+                        };
+                    },
+                },
                 echo: struct {
                     count: usize = 1,
                     positional: struct {
@@ -70,7 +78,8 @@ const Flags = struct {
 
                 pub const descriptions = .{
                     .list = "List all active topics (subscriptions & publications)",
-                    .echo = "Print out one publication on the chosen topic",
+                    .hz = "Monitor the publication frequency of the given topic",
+                    .echo = "Print out <n> publications of the given topic (default: 1)",
                     .@"pub" = "Publish a message on a given topic",
                 };
             },
@@ -150,6 +159,7 @@ pub fn main() !void {
         .topic => |topic_cmd| {
             switch (topic_cmd.command) {
                 .list => c.list_topics(),
+                .hz => |h| c.hz_topic(@ptrCast(h.positional.topic)),
                 .echo => |e| {
                     c.echo_topic(@ptrCast(e.positional.topic), e.count);
                 },

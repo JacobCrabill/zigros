@@ -976,6 +976,7 @@ pub fn build(b: *std.Build) void {
     });
     const cyclonedds = cyclonedds_dep.artifact("cyclonedds");
     b.installArtifact(cyclonedds);
+    ros_libraries.cyclonedds = cyclonedds;
 
     if (enable_shm) {
         // // Iceoryx RouDi (Routing and Discovery) only exists with shared-memory support
