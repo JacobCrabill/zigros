@@ -159,9 +159,8 @@ class TopicRateMonitor : public rclcpp::Node {
  public:
   // The constructor now takes the topic name as a string argument.
   TopicRateMonitor(const std::string& topic_name)
-      : rclcpp::Node("topic_rate_monitor")
+      : rclcpp::Node("topic_rate_monitor"), topic_name_(topic_name)
   {
-
     // We now use a GenericSubscription to subscribe to any topic type.
     // The callback only cares about the arrival of a message, not its content.
     subscription_ = createGenericSubscriber(this, topic_name,
@@ -184,6 +183,8 @@ class TopicRateMonitor : public rclcpp::Node {
   size_t window_count_{0};
   double min_time_diff_sec_{1e9};
   double max_time_diff_sec_{0};
+  const std::string topic_name_;
+
   rclcpp::Time start_time_;
   rclcpp::Time last_msg_time_;
 
@@ -222,16 +223,17 @@ class TopicRateMonitor : public rclcpp::Node {
       // Calculate overall and 1s windowed frequencies.
       const double overall_frequency = static_cast<double>(count_) / total_elapsed;
       const double window_frequency = static_cast<double>(window_count_);
+      const size_t min_dt_ms = static_cast<size_t>(min_time_diff_sec_ * 1000);
+      const size_t max_dt_ms = static_cast<size_t>(max_time_diff_sec_ * 1000);
 
       // Print the formatted statistics.
-      RCLCPP_INFO(this->get_logger(),
-                  "\n-----------------------------\n"
-                  "Overall Frequency: %.2f Hz\n"
-                  "1s Window Frequency: %.2f Hz\n"
-                  "Min Time Between Messages: %.4f s\n"
-                  "Max Time Between Messages: %.4f s\n"
-                  "-----------------------------\n",
-                  overall_frequency, window_frequency, min_time_diff_sec_, max_time_diff_sec_);
+      printf("Rates for topic %s:\n"
+             "\tPublication Count: %lu\n"
+             "\tOverall Frequency: %.2f Hz\n"
+             "\t1s Window Frequency: %.2f Hz\n"
+             "\tMin Time Between Messages: %d ms\n"
+             "\tMax Time Between Messages: %d ms\n",
+             topic_name_.c_str(), count_, overall_frequency, window_frequency, min_dt_ms, max_dt_ms);
 
       // Reset the window count for the next second.
       window_count_ = 0;

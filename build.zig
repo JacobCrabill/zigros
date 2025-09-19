@@ -392,6 +392,12 @@ pub const ZigRos = struct {
         };
     }
 
+    /// Install all command-line tools such as the ros2 CLI and the Zenoh router
+    pub fn installCliTools(self: *const ZigRos, b: *std.Build) void {
+        b.installArtifact(self.cli_tools.ros2);
+        // TODO: Add zenohd, iox_roudi, etc. as needed
+    }
+
     pub fn stepLinkRcl(self: ZigRos, step: *Compile) void {
         self.linkRcl(step.root_module);
     }
